@@ -245,11 +245,29 @@ SimSiam 학습:
 ./.venv/bin/python benchmark/simsiam/train.py
 ```
 
-비교 모델의 결과는 `benchmark/<model_name>/pretrained/` 바로 아래에 저장되고, 제안 모델 RSCL의 결과는 `rscl/pretrained/` 아래에 저장됩니다. 학습 파라미터는 `config.json`, epoch별 JSONL 기록은 `train_log.jsonl`, 모델 가중치는 `checkpoint_epoch_XXXX.pt`로 저장됩니다. batch별 벤치마크 launcher를 사용하면 같은 pretrained 폴더 안에 `config_cifar100_batch_1024.json`, `train_log_cifar100_batch_1024.jsonl`, `cifar100_batch_1024_best.pt`처럼 dataset과 batch prefix가 붙습니다.
+비교 모델의 결과는 `benchmark/<model_name>/pretrained/` 바로 아래에 저장되고, 제안 모델 RSCL의 결과는 `rscl/pretrained/` 아래에 저장됩니다.
 
-SimCLR benchmark는 epoch checkpoint를 저장하지 않고 best checkpoint만 저장합니다. 예를 들어 SimCLR CIFAR100 batch 1024의 checkpoint는 `benchmark/simclr/pretrained/cifar100_batch_1024_best.pt` 하나만 남깁니다.
+학습 스크립트는 epoch checkpoint와 JSONL train log를 저장하지 않고, 같은 basename의 best checkpoint와 config JSON만 저장합니다. Benchmark launcher는 같은 basename의 console log를 각 모델의 `pretrained/` 폴더 바로 아래에 저장합니다. 예를 들어 CIFAR100 batch 1024는 각 모델 폴더에 다음 파일만 남깁니다.
 
-2026-06-20에 중지한 `final_cifar100_batch_1024` run은 epoch 232까지 진행됐지만 train loss 하강이 약했습니다. 이후 SimCLR loss를 두 방향 평균 NT-Xent로 수정했고, SimCLR base learning rate를 `1.0`, warmup을 `10` epoch으로 조정했습니다. RSCL의 learning rate는 아직 별도 탐색 전이므로 `0.3`으로 남겨둡니다. 수정 이후 새 run은 이전 기록과 구분되도록 `RS_BENCHMARK_RUN_TAG=final_lrfix`처럼 별도 prefix를 사용하는 것을 권장합니다.
+```text
+benchmark/simclr/pretrained/cifar100_batch_1024_best.pt
+benchmark/simclr/pretrained/cifar100_batch_1024_best.json
+benchmark/simclr/pretrained/cifar100_batch_1024_best.log
+
+benchmark/byol/pretrained/cifar100_batch_1024_best.pt
+benchmark/byol/pretrained/cifar100_batch_1024_best.json
+benchmark/byol/pretrained/cifar100_batch_1024_best.log
+
+benchmark/simsiam/pretrained/cifar100_batch_1024_best.pt
+benchmark/simsiam/pretrained/cifar100_batch_1024_best.json
+benchmark/simsiam/pretrained/cifar100_batch_1024_best.log
+
+rscl/pretrained/cifar100_batch_1024_best.pt
+rscl/pretrained/cifar100_batch_1024_best.json
+rscl/pretrained/cifar100_batch_1024_best.log
+```
+
+2026-06-20에 중지한 `final_cifar100_batch_1024` run은 epoch 232까지 진행됐지만 train loss 하강이 약했습니다. 이후 SimCLR loss를 두 방향 평균 NT-Xent로 수정했고, SimCLR base learning rate를 `1.0`, warmup을 `10` epoch으로 조정했습니다. RSCL의 learning rate는 아직 별도 탐색 전이므로 `0.3`으로 남겨둡니다. 산출물은 dataset과 batch size 기준의 고정 파일명으로 덮어씁니다.
 
 SimCLR CIFAR100 batch 1024 기준 learning rate 탐색 결과는 다음과 같습니다. 모든 값은 warmup 10 epoch 이후 train loss stopper로 확인했습니다.
 
@@ -263,7 +281,7 @@ base lr 1.000: best val 6.1649, train drop 0.1784, stopped
 
 현재 SimCLR 추천값은 `LEARNING_RATE = 1.0`입니다. batch 1024에서는 linear scaling으로 실제 peak learning rate가 `4.0`이 되며, cosine schedule과 10 epoch warmup을 함께 사용합니다. `1.0`은 warmup 중 validation loss가 흔들리지만 NaN/OOM 없이 후반 cosine decay 구간에서 가장 낮은 validation loss를 기록했습니다.
 
-콘솔 로그 파일은 각 모델의 `pretrained/log/` 폴더 아래에 저장합니다. 예를 들어 SimCLR CIFAR100 batch 1024 final run의 콘솔 로그는 `benchmark/simclr/pretrained/log/final_cifar100_batch_1024.log`입니다. 학습 스크립트는 tqdm을 사용하지 않고 epoch summary만 출력합니다.
+콘솔 로그 파일은 학습 스크립트의 epoch summary를 저장합니다.
 
 ## 공용 평가 및 분석 파일
 
@@ -289,7 +307,7 @@ Linear evaluation 실행 예시는 다음과 같습니다.
 ```bash
 ./.venv/bin/python linear_eval.py \
   --model simclr \
-  --checkpoint benchmark/simclr/pretrained/final_cifar100_batch_1024_checkpoint_epoch_0400.pt \
+  --checkpoint benchmark/simclr/pretrained/cifar100_batch_1024_best.pt \
   --dataset cifar100 \
   --batch-size 512 \
   --epochs 100
