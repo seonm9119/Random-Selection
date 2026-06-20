@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+
+dataset/*
+!dataset/.gitkeep
+
+runs/
+logs/
+results/
+benchmark/*/pretrained/*
+!benchmark/*/pretrained/.gitkeep
+rscl/pretrained/*
+!rscl/pretrained/.gitkeep
