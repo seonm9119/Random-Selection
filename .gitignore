@@ -1,6 +1,8 @@
 .venv/
 __pycache__/
 *.pyc
+code_style.txt
+token.txt
 
 dataset/*
 !dataset/.gitkeep
