@@ -3,11 +3,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+from common.training_outputs import create_dataset_batch_best_basename
+
 
 PROJECT_DIR = Path(__file__).resolve().parent
 PYTHON_BIN = PROJECT_DIR / ".venv" / "bin" / "python"
 
-FINAL_PRETRAIN_RUN_TAG = os.environ.get("RS_BENCHMARK_RUN_TAG", "final")
 FINAL_PRETRAIN_EPOCHS = int(os.environ.get("RS_BENCHMARK_EPOCHS", "400"))
 FINAL_PRETRAIN_SAVE_EVERY = int(os.environ.get("RS_BENCHMARK_SAVE_EVERY", "100"))
 FINAL_PRETRAIN_EARLY_STOP_ENABLED = os.environ.get("RS_BENCHMARK_EARLY_STOP_ENABLED", "false")
@@ -72,53 +73,39 @@ def get_python_bin():
 
 def create_experiment_env(experiment):
     environment = os.environ.copy()
-    run_prefix = create_run_prefix(experiment)
-    checkpoint_prefix = create_checkpoint_prefix(experiment)
-    environment.update(
-        {
-            "PYTHONWARNINGS": "ignore::FutureWarning",
-            "RS_DATASET": experiment["dataset"],
-            "RS_EPOCHS": str(FINAL_PRETRAIN_EPOCHS),
-            "RS_BATCH_SIZE": str(experiment["batch_size"]),
-            "RS_SAVE_EVERY": str(FINAL_PRETRAIN_SAVE_EVERY),
-            "RS_OUTPUT_DIR": experiment["output_dir"],
-            "RS_EARLY_STOP_ENABLED": FINAL_PRETRAIN_EARLY_STOP_ENABLED,
-            "RS_EARLY_STOP_MIN_DELTA": FINAL_PRETRAIN_EARLY_STOP_MIN_DELTA,
-            "RS_EARLY_STOP_PATIENCE": FINAL_PRETRAIN_EARLY_STOP_PATIENCE,
-            "RS_TRAIN_LOSS_STOP_ENABLED": FINAL_PRETRAIN_TRAIN_LOSS_STOP_ENABLED,
-            "RS_TRAIN_LOSS_STOP_START_EPOCH": FINAL_PRETRAIN_TRAIN_LOSS_STOP_START_EPOCH,
-            "RS_TRAIN_LOSS_STOP_MIN_DELTA": FINAL_PRETRAIN_TRAIN_LOSS_STOP_MIN_DELTA,
-            "RS_TRAIN_LOSS_STOP_PATIENCE": FINAL_PRETRAIN_TRAIN_LOSS_STOP_PATIENCE,
-            "RS_SUPPRESS_EXTERNAL_PROGRESS": "true",
-            "RS_CONFIG_FILE_NAME": f"config_{run_prefix}.json",
-            "RS_TRAIN_LOG_FILE_NAME": f"train_log_{run_prefix}.jsonl",
-            "RS_CHECKPOINT_FILE_TEMPLATE": f"{checkpoint_prefix}_epoch_{{epoch:04d}}.pt",
-            "RS_BEST_CHECKPOINT_FILE_NAME": f"{checkpoint_prefix}_best.pt",
-        }
-    )
+    artifact_basename = create_experiment_artifact_basename(experiment)
+    environment_updates = {
+        "PYTHONWARNINGS": "ignore::FutureWarning",
+        "RS_DATASET": experiment["dataset"],
+        "RS_EPOCHS": str(FINAL_PRETRAIN_EPOCHS),
+        "RS_BATCH_SIZE": str(experiment["batch_size"]),
+        "RS_SAVE_EVERY": str(FINAL_PRETRAIN_SAVE_EVERY),
+        "RS_OUTPUT_DIR": experiment["output_dir"],
+        "RS_EARLY_STOP_ENABLED": FINAL_PRETRAIN_EARLY_STOP_ENABLED,
+        "RS_EARLY_STOP_MIN_DELTA": FINAL_PRETRAIN_EARLY_STOP_MIN_DELTA,
+        "RS_EARLY_STOP_PATIENCE": FINAL_PRETRAIN_EARLY_STOP_PATIENCE,
+        "RS_TRAIN_LOSS_STOP_ENABLED": FINAL_PRETRAIN_TRAIN_LOSS_STOP_ENABLED,
+        "RS_TRAIN_LOSS_STOP_START_EPOCH": FINAL_PRETRAIN_TRAIN_LOSS_STOP_START_EPOCH,
+        "RS_TRAIN_LOSS_STOP_MIN_DELTA": FINAL_PRETRAIN_TRAIN_LOSS_STOP_MIN_DELTA,
+        "RS_TRAIN_LOSS_STOP_PATIENCE": FINAL_PRETRAIN_TRAIN_LOSS_STOP_PATIENCE,
+        "RS_SUPPRESS_EXTERNAL_PROGRESS": "true",
+        "RS_CONFIG_FILE_NAME": f"{artifact_basename}.json",
+        "RS_CHECKPOINT_FILE_TEMPLATE": f"{artifact_basename}.pt",
+        "RS_BEST_CHECKPOINT_FILE_NAME": f"{artifact_basename}.pt",
+    }
+
+    environment.update(environment_updates)
     return environment
 
 
-def create_checkpoint_prefix(experiment):
-    if experiment["model"] == "simclr":
-        return f"{experiment['dataset']}_batch_{experiment['batch_size']}"
-
-    return create_run_prefix(experiment)
-
-
-def create_run_prefix(experiment):
-    base_prefix = f"{experiment['dataset']}_batch_{experiment['batch_size']}"
-
-    if FINAL_PRETRAIN_RUN_TAG:
-        return f"{FINAL_PRETRAIN_RUN_TAG}_{base_prefix}"
-
-    return base_prefix
+def create_experiment_artifact_basename(experiment):
+    return create_dataset_batch_best_basename(experiment["dataset"], experiment["batch_size"])
 
 
 def create_log_path(experiment):
-    log_dir = PROJECT_DIR / experiment["output_dir"] / "log"
+    log_dir = PROJECT_DIR / experiment["output_dir"]
     log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir / f"{create_run_prefix(experiment)}.log"
+    return log_dir / f"{create_experiment_artifact_basename(experiment)}.log"
 
 
 def parse_filter_values(filter_text):

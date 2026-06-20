@@ -113,7 +113,6 @@ SAVE_EVERY_REMAINDER = 0
 OFFICIAL_TRAIN_STEPS_OFFSET = 0
 
 CONFIG_FILE_NAME = "config.json"
-TRAIN_LOG_FILE_NAME = "train_log.jsonl"
 CHECKPOINT_FILE_TEMPLATE = "checkpoint_epoch_{epoch:04d}.pt"
 BEST_CHECKPOINT_FILE_NAME = "checkpoint_best.pt"
 CHECKPOINT_EPOCH_KEY = "epoch"
@@ -237,7 +236,6 @@ def get_training_config():
         "save_every_remainder": SAVE_EVERY_REMAINDER,
         "official_train_steps_offset": OFFICIAL_TRAIN_STEPS_OFFSET,
         "config_file_name": CONFIG_FILE_NAME,
-        "train_log_file_name": TRAIN_LOG_FILE_NAME,
         "checkpoint_file_template": CHECKPOINT_FILE_TEMPLATE,
         "best_checkpoint_file_name": BEST_CHECKPOINT_FILE_NAME,
         "checkpoint_epoch_key": CHECKPOINT_EPOCH_KEY,

@@ -27,7 +27,7 @@ from common.training_control import (  # noqa: E402
     update_train_loss_stopping,
     validate_training_control_config,
 )
-from common.training_logs import reset_training_log, write_training_log  # noqa: E402
+from common.training_outputs import use_best_artifact_file_names  # noqa: E402
 
 
 def get_crop_interpolation(training_config):
@@ -236,19 +236,13 @@ def resolve_training_config():
         raise ValueError("CROP_INTERPOLATION must be 'bicubic' or 'bilinear'.")
 
     validate_training_control_config(training_config)
-    update_checkpoint_file_names(training_config)
+    use_best_artifact_file_names(training_config)
     training_config["encoder_feature_dim"] = training_config["backbone_feature_dims"][training_config["backbone_name"]]
     training_config["projection_hidden_dim"] = training_config["projection_hidden_dims"][training_config["backbone_name"]]
     training_config["dataset_dir"] = resolve_project_path(training_config["dataset_dir"])
     training_config["output_dir"] = resolve_project_path(training_config["output_dir"])
     training_config["amp"] = training_config["amp"] and training_config["device"] == training_config["cuda_device"]
     return training_config
-
-
-def update_checkpoint_file_names(training_config):
-    checkpoint_prefix = f"{training_config['dataset']}_batch_{training_config['batch_size']}"
-    training_config["checkpoint_file_template"] = f"{checkpoint_prefix}_epoch_{{epoch:04d}}.pt"
-    training_config["best_checkpoint_file_name"] = f"{checkpoint_prefix}_best.pt"
 
 
 def update_training_step_config(training_config, dataloader):
@@ -290,7 +284,6 @@ def main():
     )
     update_training_step_config(training_config, dataloader)
     write_training_config(run_dir, training_config)
-    reset_training_log(run_dir, training_config)
 
     model = SimclrModel(training_config).to(device)
     criterion = SimclrNtXentLoss(training_config).to(device)
@@ -328,28 +321,6 @@ def main():
         validation_loss = evaluate_one_epoch(model, criterion, validation_dataloader, device, training_config)
         early_stop_state = early_stopping.update(validation_loss, epoch)
         train_loss_stop_state = update_train_loss_stopping(train_loss_stopping, average_loss, epoch, training_config)
-        write_training_log(
-            run_dir,
-            training_config,
-            {
-                "epoch": epoch,
-                "loss": average_loss,
-                "train_loss": average_loss,
-                "val_loss": validation_loss,
-                "learning_rate": learning_rate,
-                "best_val_loss": early_stop_state["best_val_loss"],
-                "best_epoch": early_stop_state["best_epoch"],
-                "early_stop_wait": early_stop_state["wait_count"],
-                "early_stop_improved": early_stop_state["improved"],
-                "train_loss_stop_active": train_loss_stop_state["active"],
-                "train_loss_stop_best_loss": train_loss_stop_state["best_loss"],
-                "train_loss_stop_best_epoch": train_loss_stop_state["best_epoch"],
-                "train_loss_stop_wait": train_loss_stop_state["wait_count"],
-                "train_loss_stop_improved": train_loss_stop_state["improved"],
-                "train_loss_stop_patience": training_config["train_loss_stop_patience"],
-            },
-        )
-
         print(
             training_config["epoch_log_template"].format(
                 epoch=epoch,

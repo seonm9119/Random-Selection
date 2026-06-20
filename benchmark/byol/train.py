@@ -26,7 +26,7 @@ from common.training_control import (  # noqa: E402
     update_train_loss_stopping,
     validate_training_control_config,
 )
-from common.training_logs import reset_training_log, write_training_log  # noqa: E402
+from common.training_outputs import use_best_artifact_file_names  # noqa: E402
 
 
 def get_crop_interpolation(training_config):
@@ -174,6 +174,7 @@ def resolve_training_config():
         raise ValueError("CROP_INTERPOLATION must be 'bicubic' or 'bilinear'.")
 
     validate_training_control_config(training_config)
+    use_best_artifact_file_names(training_config)
     training_config["encoder_feature_dim"] = training_config["backbone_feature_dims"][training_config["backbone_name"]]
     training_config["dataset_dir"] = resolve_project_path(training_config["dataset_dir"])
     training_config["output_dir"] = resolve_project_path(training_config["output_dir"])
@@ -263,7 +264,6 @@ def main():
     )
     update_training_step_config(training_config, dataloader)
     write_training_config(run_dir, training_config)
-    reset_training_log(run_dir, training_config)
 
     model = ByolModel(training_config).to(device)
     criterion = ByolRegressionLoss(training_config).to(device)
@@ -286,7 +286,6 @@ def main():
     print(training_config["amp_log_template"].format(amp=training_config["amp"]))
 
     last_epoch = training_config["epochs"] + training_config["training_start_epoch"]
-    final_epoch = last_epoch - training_config["final_epoch_offset"]
 
     for epoch in range(training_config["training_start_epoch"], last_epoch):
         average_loss, learning_rate, target_ema = train_one_epoch(
@@ -304,29 +303,6 @@ def main():
         validation_loss = evaluate_one_epoch(model, criterion, validation_dataloader, device, training_config)
         early_stop_state = early_stopping.update(validation_loss, epoch)
         train_loss_stop_state = update_train_loss_stopping(train_loss_stopping, average_loss, epoch, training_config)
-        write_training_log(
-            run_dir,
-            training_config,
-            {
-                "epoch": epoch,
-                "loss": average_loss,
-                "train_loss": average_loss,
-                "val_loss": validation_loss,
-                "learning_rate": learning_rate,
-                "target_ema": target_ema,
-                "best_val_loss": early_stop_state["best_val_loss"],
-                "best_epoch": early_stop_state["best_epoch"],
-                "early_stop_wait": early_stop_state["wait_count"],
-                "early_stop_improved": early_stop_state["improved"],
-                "train_loss_stop_active": train_loss_stop_state["active"],
-                "train_loss_stop_best_loss": train_loss_stop_state["best_loss"],
-                "train_loss_stop_best_epoch": train_loss_stop_state["best_epoch"],
-                "train_loss_stop_wait": train_loss_stop_state["wait_count"],
-                "train_loss_stop_improved": train_loss_stop_state["improved"],
-                "train_loss_stop_patience": training_config["train_loss_stop_patience"],
-            },
-        )
-
         print(
             training_config["epoch_log_template"].format(
                 epoch=epoch,
@@ -349,9 +325,6 @@ def main():
                 training_config["best_checkpoint_file_name"],
             )
 
-        if epoch % training_config["save_every"] == training_config["save_every_remainder"] or epoch == final_epoch:
-            save_checkpoint(run_dir, model, optimizer, epoch, training_config)
-
         if train_loss_stop_state["should_stop"]:
             print(
                 "train_loss_stop "
@@ -361,7 +334,6 @@ def main():
             break
 
         if training_config["early_stop_enabled"] and early_stop_state["should_stop"]:
-            save_checkpoint(run_dir, model, optimizer, epoch, training_config)
             print(
                 "early_stop "
                 f"epoch={epoch} best_epoch={early_stop_state['best_epoch']} "

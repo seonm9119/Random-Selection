@@ -27,7 +27,6 @@ def apply_environment_overrides(training_config):
         "RS_DATASET": ("dataset", str),
         "RS_OUTPUT_DIR": ("output_dir", str),
         "RS_CONFIG_FILE_NAME": ("config_file_name", str),
-        "RS_TRAIN_LOG_FILE_NAME": ("train_log_file_name", str),
         "RS_CHECKPOINT_FILE_TEMPLATE": ("checkpoint_file_template", str),
         "RS_BEST_CHECKPOINT_FILE_NAME": ("best_checkpoint_file_name", str),
         "RS_EPOCHS": ("epochs", int),
