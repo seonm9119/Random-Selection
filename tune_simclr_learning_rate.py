@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -60,7 +61,6 @@ def create_environment(learning_rate, run_name):
             "RS_WARMUP_EPOCHS": str(warmup_epochs),
             "RS_OUTPUT_DIR": str(output_dir),
             "RS_CONFIG_FILE_NAME": "config.json",
-            "RS_TRAIN_LOG_FILE_NAME": "train_log.jsonl",
             "RS_EARLY_STOP_ENABLED": "false",
             "RS_TRAIN_LOSS_STOP_ENABLED": "true",
             "RS_TRAIN_LOSS_STOP_START_EPOCH": str(stop_start_epoch),
@@ -104,26 +104,25 @@ def run_learning_rate_candidate(learning_rate):
 
 
 def summarize_candidate(run_dir, learning_rate):
-    train_log_path = run_dir / "train_log.jsonl"
-    rows = read_train_log(train_log_path)
+    console_log_path = run_dir / "console.log"
+    rows = read_console_epoch_rows(console_log_path)
 
     if not rows:
         return {
             "learning_rate": learning_rate,
             "epochs": 0,
-            "status": "no_log",
+            "status": "no_epoch_log",
         }
 
+    training_config = read_training_config(run_dir)
+    train_loss_stop_start_epoch = training_config.get("train_loss_stop_start_epoch", DEFAULT_WARMUP_EPOCHS + 1)
     first_row = rows[0]
     last_row = rows[-1]
-    active_rows = [row for row in rows if row["train_loss_stop_active"]]
+    active_rows = [row for row in rows if row["epoch"] >= train_loss_stop_start_epoch]
     first_active_row = active_rows[0] if active_rows else first_row
     best_train_row = min(rows, key=lambda row: row["train_loss"])
     best_val_row = min(rows, key=lambda row: row["val_loss"])
-    stopped_by_train_loss = (
-        last_row["train_loss_stop_active"]
-        and last_row["train_loss_stop_wait"] >= int(last_row.get("train_loss_stop_patience", 0))
-    )
+    stopped_by_train_loss = console_log_contains(console_log_path, "train_loss_stop ")
 
     return {
         "learning_rate": learning_rate,
@@ -144,15 +143,54 @@ def summarize_candidate(run_dir, learning_rate):
     }
 
 
-def read_train_log(train_log_path):
-    if not train_log_path.exists():
+def read_console_epoch_rows(console_log_path):
+    if not console_log_path.exists():
         return []
 
     rows = []
-    for line in train_log_path.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            rows.append(json.loads(line))
+    epoch_pattern = re.compile(
+        r"^epoch=(?P<epoch>\d+) "
+        r"train_loss=(?P<train_loss>[-+0-9.eE]+) "
+        r"val_loss=(?P<val_loss>[-+0-9.eE]+) "
+        r"lr=(?P<learning_rate>[-+0-9.eE]+) "
+        r"best_val_loss=(?P<best_val_loss>[-+0-9.eE]+) "
+        r"early_stop_wait=(?P<early_stop_wait>\d+)"
+    )
+
+    for line in console_log_path.read_text(encoding="utf-8").splitlines():
+        epoch_match = epoch_pattern.match(line.strip())
+
+        if not epoch_match:
+            continue
+
+        rows.append(
+            {
+                "epoch": int(epoch_match.group("epoch")),
+                "train_loss": float(epoch_match.group("train_loss")),
+                "val_loss": float(epoch_match.group("val_loss")),
+                "learning_rate": float(epoch_match.group("learning_rate")),
+                "best_val_loss": float(epoch_match.group("best_val_loss")),
+                "early_stop_wait": int(epoch_match.group("early_stop_wait")),
+            }
+        )
+
     return rows
+
+
+def read_training_config(run_dir):
+    config_paths = sorted(run_dir.glob("*.json"))
+
+    if not config_paths:
+        return {}
+
+    return json.loads(config_paths[0].read_text(encoding="utf-8"))
+
+
+def console_log_contains(console_log_path, text):
+    if not console_log_path.exists():
+        return False
+
+    return text in console_log_path.read_text(encoding="utf-8")
 
 
 def write_summary(summaries):
