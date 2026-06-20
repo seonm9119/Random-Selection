@@ -37,7 +37,7 @@ RUN_CONFIG = {
     "dataset": CIFAR10_DATASET_NAME,
     "dataset_dir": "dataset",
     "output_dir": "benchmark/simclr/pretrained",
-    "epochs": 1000,
+    "epochs": 500,
     "batch_size": 1024,
     "planned_batch_sizes": (1024, 512, 256),
     "num_workers": 4,

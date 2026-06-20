@@ -9,7 +9,7 @@ from common.training_outputs import create_dataset_batch_best_basename
 PROJECT_DIR = Path(__file__).resolve().parent
 PYTHON_BIN = PROJECT_DIR / ".venv" / "bin" / "python"
 
-FINAL_PRETRAIN_EPOCHS = int(os.environ.get("RS_BENCHMARK_EPOCHS", "1000"))
+FINAL_PRETRAIN_EPOCHS = int(os.environ.get("RS_BENCHMARK_EPOCHS", "500"))
 MODEL_FILTER = os.environ.get("RS_BENCHMARK_MODELS", "")
 DATASET_FILTER = os.environ.get("RS_BENCHMARK_DATASETS", "")
 BATCH_SIZE_FILTER = os.environ.get("RS_BENCHMARK_BATCH_SIZES", "")
