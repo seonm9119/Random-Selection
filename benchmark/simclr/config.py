@@ -1,28 +1,23 @@
 CIFAR10_DATASET_NAME = "cifar10"
 CIFAR100_DATASET_NAME = "cifar100"
-DATASET = CIFAR100_DATASET_NAME
+DATASET = CIFAR10_DATASET_NAME
 DATASET_DIR = "dataset"
 OUTPUT_DIR = "benchmark/simclr/pretrained"
 SUPPORTED_DATASETS = (CIFAR10_DATASET_NAME, CIFAR100_DATASET_NAME)
 PAPER_REFERENCE = "A Simple Framework for Contrastive Learning of Visual Representations"
 PAPER_URL = "https://arxiv.org/abs/2002.05709"
 OFFICIAL_GITHUB = "https://github.com/google-research/simclr"
-PAPER_SETTING_SOURCE = "2022_KCC_Random_Selection_based_Loss_Function"
+PAPER_SETTING_SOURCE = "SimCLR Appendix B.9 CIFAR-10"
 
-EPOCHS = 400
+EPOCHS = 1000
 BATCH_SIZE = 1024
-PAPER_EPOCH_OPTIONS = (100, 500)
-PAPER_BATCH_SIZE_OPTIONS = (256, 512)
-PAPER_DATASET_EXPERIMENTS = {
-    CIFAR10_DATASET_NAME: {
-        "batch_sizes": PAPER_BATCH_SIZE_OPTIONS,
-        "epochs": PAPER_EPOCH_OPTIONS,
-    },
-    CIFAR100_DATASET_NAME: {
-        "batch_sizes": PAPER_BATCH_SIZE_OPTIONS,
-        "epochs": PAPER_EPOCH_OPTIONS,
-    },
-}
+PAPER_EPOCH_OPTIONS = (100, 200, 300, 400, 500, 600, 700, 800, 900, 1000)
+PAPER_BATCH_SIZE_OPTIONS = (256, 512, 1024, 2048, 4096)
+PLANNED_BATCH_SIZES = (1024, 512, 256)
+PAPER_LEARNING_RATE_OPTIONS = (0.5, 1.0, 1.5)
+PAPER_TEMPERATURE_OPTIONS = (0.1, 0.5, 1.0)
+PAPER_REPORTED_BEST_BATCH_SIZE = 1024
+PAPER_REPORTED_LINEAR_TOP1 = 94.0
 NUM_WORKERS = 4
 IMAGE_SIZE = 32
 TEMPERATURE = 0.5
@@ -32,22 +27,11 @@ LEARNING_RATE_SCALING_SQRT = "sqrt"
 LEARNING_RATE_SCALING = LEARNING_RATE_SCALING_LINEAR
 LEARNING_RATE_SCALE_REFERENCE_BATCH_SIZE = 256
 WARMUP_EPOCHS = 10
-WEIGHT_DECAY = 1e-4
+WEIGHT_DECAY = 1e-6
 SEED = 0
 DEVICE = "auto"
 AMP = True
-SAVE_EVERY = 100
-SAVE_BEST_CHECKPOINT = True
 MAX_BATCH_SIZE = 1024
-VALIDATION_SIZE = 5000
-VALIDATION_SPLIT_SEED = 0
-EARLY_STOP_ENABLED = False
-EARLY_STOP_MIN_DELTA = 3e-4
-EARLY_STOP_PATIENCE = 5
-TRAIN_LOSS_STOP_ENABLED = True
-TRAIN_LOSS_STOP_START_EPOCH = 0
-TRAIN_LOSS_STOP_MIN_DELTA = 0.01
-TRAIN_LOSS_STOP_PATIENCE = 5
 
 PROJECT_DIR_PARENT_DEPTH = 2
 AUTO_DEVICE = "auto"
@@ -72,10 +56,9 @@ COLOR_JITTER_HUE = 0.2
 COLOR_JITTER_PROBABILITY = 0.8
 GRAYSCALE_PROBABILITY = 0.2
 
-RESNET18_BACKBONE_NAME = "resnet18"
 RESNET50_BACKBONE_NAME = "resnet50"
-BACKBONE_NAME = RESNET18_BACKBONE_NAME
-SUPPORTED_BACKBONES = (RESNET18_BACKBONE_NAME, RESNET50_BACKBONE_NAME)
+BACKBONE_NAME = RESNET50_BACKBONE_NAME
+SUPPORTED_BACKBONES = (RESNET50_BACKBONE_NAME,)
 RESNET_WEIGHTS = None
 RESNET_FIRST_CONV_IN_CHANNELS = 3
 RESNET_FIRST_CONV_OUT_CHANNELS = 64
@@ -84,12 +67,10 @@ RESNET_FIRST_CONV_STRIDE = 1
 RESNET_FIRST_CONV_PADDING = 1
 RESNET_FIRST_CONV_BIAS = False
 BACKBONE_FEATURE_DIMS = {
-    RESNET18_BACKBONE_NAME: 512,
     RESNET50_BACKBONE_NAME: 2048,
 }
 
 PROJECTION_HIDDEN_DIMS = {
-    RESNET18_BACKBONE_NAME: 512,
     RESNET50_BACKBONE_NAME: 2048,
 }
 PROJ_HEAD_MODE_NONE = "none"
@@ -138,8 +119,6 @@ TEXT_ENCODING = "utf-8"
 TENSOR_SAMPLE_DIM = 0
 MIN_WORKER_COUNT_FOR_PERSISTENCE = 0
 EPOCH_LOSS_INITIAL_VALUE = 0.0
-FINAL_EPOCH_OFFSET = 1
-SAVE_EVERY_REMAINDER = 0
 PRIMARY_LEARNING_RATE_INDEX = 0
 OFFICIAL_TRAIN_STEPS_OFFSET = 1
 
@@ -164,8 +143,7 @@ DATASET_LOG_TEMPLATE = "dataset={dataset}"
 DEVICE_LOG_TEMPLATE = "device={device}"
 AMP_LOG_TEMPLATE = "amp={amp}"
 EPOCH_LOG_TEMPLATE = (
-    "epoch={epoch} train_loss={average_loss:.4f} val_loss={validation_loss:.4f} "
-    "lr={learning_rate:.6f} best_val_loss={best_val_loss:.4f} early_stop_wait={early_stop_wait}"
+    "epoch={epoch} train_loss={average_loss:.4f} lr={learning_rate:.6f}"
 )
 
 
@@ -185,7 +163,11 @@ def get_training_config():
         "batch_size": BATCH_SIZE,
         "paper_epoch_options": PAPER_EPOCH_OPTIONS,
         "paper_batch_size_options": PAPER_BATCH_SIZE_OPTIONS,
-        "paper_dataset_experiments": PAPER_DATASET_EXPERIMENTS,
+        "planned_batch_sizes": PLANNED_BATCH_SIZES,
+        "paper_learning_rate_options": PAPER_LEARNING_RATE_OPTIONS,
+        "paper_temperature_options": PAPER_TEMPERATURE_OPTIONS,
+        "paper_reported_best_batch_size": PAPER_REPORTED_BEST_BATCH_SIZE,
+        "paper_reported_linear_top1": PAPER_REPORTED_LINEAR_TOP1,
         "num_workers": NUM_WORKERS,
         "image_size": IMAGE_SIZE,
         "temperature": TEMPERATURE,
@@ -199,18 +181,7 @@ def get_training_config():
         "seed": SEED,
         "device": DEVICE,
         "amp": AMP,
-        "save_every": SAVE_EVERY,
-        "save_best_checkpoint": SAVE_BEST_CHECKPOINT,
         "max_batch_size": MAX_BATCH_SIZE,
-        "validation_size": VALIDATION_SIZE,
-        "validation_split_seed": VALIDATION_SPLIT_SEED,
-        "early_stop_enabled": EARLY_STOP_ENABLED,
-        "early_stop_min_delta": EARLY_STOP_MIN_DELTA,
-        "early_stop_patience": EARLY_STOP_PATIENCE,
-        "train_loss_stop_enabled": TRAIN_LOSS_STOP_ENABLED,
-        "train_loss_stop_start_epoch": TRAIN_LOSS_STOP_START_EPOCH,
-        "train_loss_stop_min_delta": TRAIN_LOSS_STOP_MIN_DELTA,
-        "train_loss_stop_patience": TRAIN_LOSS_STOP_PATIENCE,
         "project_dir_parent_depth": PROJECT_DIR_PARENT_DEPTH,
         "auto_device": AUTO_DEVICE,
         "cuda_device": CUDA_DEVICE,
@@ -232,7 +203,6 @@ def get_training_config():
         "color_jitter_probability": COLOR_JITTER_PROBABILITY,
         "grayscale_probability": GRAYSCALE_PROBABILITY,
         "backbone_name": BACKBONE_NAME,
-        "resnet18_backbone_name": RESNET18_BACKBONE_NAME,
         "resnet50_backbone_name": RESNET50_BACKBONE_NAME,
         "supported_backbones": SUPPORTED_BACKBONES,
         "resnet_weights": RESNET_WEIGHTS,
@@ -284,8 +254,6 @@ def get_training_config():
         "tensor_sample_dim": TENSOR_SAMPLE_DIM,
         "min_worker_count_for_persistence": MIN_WORKER_COUNT_FOR_PERSISTENCE,
         "epoch_loss_initial_value": EPOCH_LOSS_INITIAL_VALUE,
-        "final_epoch_offset": FINAL_EPOCH_OFFSET,
-        "save_every_remainder": SAVE_EVERY_REMAINDER,
         "primary_learning_rate_index": PRIMARY_LEARNING_RATE_INDEX,
         "official_train_steps_offset": OFFICIAL_TRAIN_STEPS_OFFSET,
         "config_file_name": CONFIG_FILE_NAME,

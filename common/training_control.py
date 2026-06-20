@@ -69,16 +69,19 @@ def validate_training_control_config(training_config):
             f"BATCH_SIZE must be <= {training_config['max_batch_size']} for this experiment plan."
         )
 
-    if training_config["validation_size"] < 0:
+    validation_size = training_config.get("validation_size")
+    if validation_size is not None and validation_size < 0:
         raise ValueError("VALIDATION_SIZE must be greater than or equal to 0.")
 
-    if training_config["early_stop_patience"] < 1:
+    early_stop_patience = training_config.get("early_stop_patience")
+    if early_stop_patience is not None and early_stop_patience < 1:
         raise ValueError("EARLY_STOP_PATIENCE must be greater than or equal to 1.")
 
-    if training_config["early_stop_min_delta"] < 0:
+    early_stop_min_delta = training_config.get("early_stop_min_delta")
+    if early_stop_min_delta is not None and early_stop_min_delta < 0:
         raise ValueError("EARLY_STOP_MIN_DELTA must be greater than or equal to 0.")
 
-    if training_config["early_stop_enabled"] and training_config["validation_size"] == 0:
+    if training_config.get("early_stop_enabled", False) and not validation_size:
         raise ValueError("VALIDATION_SIZE must be greater than 0 when early stopping is enabled.")
 
     if training_config.get("train_loss_stop_patience", 1) < 1:

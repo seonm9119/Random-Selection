@@ -9,7 +9,6 @@ class BatchNorm1dNoAffine(nn.BatchNorm1d):
 
 def get_backbone_builder(training_config):
     backbone_builders = {
-        training_config["resnet18_backbone_name"]: torchvision.models.resnet18,
         training_config["resnet50_backbone_name"]: torchvision.models.resnet50,
     }
     return backbone_builders[training_config["backbone_name"]]

@@ -1,3 +1,4 @@
+import argparse
 import json
 import math
 import random
@@ -19,15 +20,59 @@ PROJECT_DIR = Path(__file__).resolve().parents[config.PROJECT_DIR_PARENT_DEPTH]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from common.training_control import (  # noqa: E402
-    EarlyStopping,
     apply_environment_overrides,
-    create_train_validation_datasets,
-    resolve_train_loss_stop_start_epoch,
     suppress_external_progress_output,
-    update_train_loss_stopping,
     validate_training_control_config,
 )
 from common.training_outputs import use_best_artifact_file_names  # noqa: E402
+
+
+def create_argument_parser():
+    learning_rate_scaling_choices = (
+        config.LEARNING_RATE_SCALING_LINEAR,
+        config.LEARNING_RATE_SCALING_SQRT,
+    )
+    argument_parser = argparse.ArgumentParser(description="Train SimCLR pretraining model.")
+    argument_parser.add_argument("--dataset", choices=config.SUPPORTED_DATASETS)
+    argument_parser.add_argument("--epochs", type=int)
+    argument_parser.add_argument("--batch-size", type=int)
+    argument_parser.add_argument("--output-dir")
+    argument_parser.add_argument("--learning-rate", type=float)
+    argument_parser.add_argument("--learning-rate-scaling", choices=learning_rate_scaling_choices)
+    argument_parser.add_argument("--temperature", type=float)
+    argument_parser.add_argument("--weight-decay", type=float)
+    argument_parser.add_argument("--warmup-epochs", type=int)
+    argument_parser.add_argument("--num-workers", type=int)
+    argument_parser.add_argument("--device")
+    argument_parser.add_argument("--amp", dest="amp", action="store_true", default=None)
+    argument_parser.add_argument("--no-amp", dest="amp", action="store_false")
+    argument_parser.add_argument("--suppress-external-progress", dest="suppress_external_progress", action="store_true", default=None)
+    argument_parser.add_argument("--show-external-progress", dest="suppress_external_progress", action="store_false")
+    return argument_parser
+
+
+def apply_argument_overrides(training_config, command_arguments):
+    override_values = {
+        "dataset": command_arguments.dataset,
+        "epochs": command_arguments.epochs,
+        "batch_size": command_arguments.batch_size,
+        "output_dir": command_arguments.output_dir,
+        "learning_rate": command_arguments.learning_rate,
+        "learning_rate_scaling": command_arguments.learning_rate_scaling,
+        "temperature": command_arguments.temperature,
+        "weight_decay": command_arguments.weight_decay,
+        "warmup_epochs": command_arguments.warmup_epochs,
+        "num_workers": command_arguments.num_workers,
+        "device": command_arguments.device,
+        "amp": command_arguments.amp,
+        "suppress_external_progress": command_arguments.suppress_external_progress,
+    }
+
+    for config_name, override_value in override_values.items():
+        if override_value is not None:
+            training_config[config_name] = override_value
+
+    return training_config
 
 
 def get_crop_interpolation(training_config):
@@ -180,28 +225,6 @@ def train_one_epoch(model, criterion, dataloader, optimizer, learning_rate_sched
     return epoch_loss_sum / len(dataloader), last_learning_rate
 
 
-def evaluate_one_epoch(model, criterion, dataloader, device, training_config):
-    model.eval()
-    epoch_loss_sum = training_config["epoch_loss_initial_value"]
-
-    with torch.no_grad():
-        for first_view_batch, second_view_batch in iter_validation_batches(dataloader, device):
-            image_batch = torch.cat([first_view_batch, second_view_batch], dim=training_config["batch_concat_dim"])
-
-            with torch.cuda.amp.autocast(enabled=training_config["amp"]):
-                _, projection_batch = model(image_batch)
-                validation_loss = criterion(projection_batch)
-
-            epoch_loss_sum += validation_loss.item()
-
-    return epoch_loss_sum / len(dataloader)
-
-
-def iter_validation_batches(dataloader, device):
-    for (first_view_batch, second_view_batch), _ in dataloader:
-        yield first_view_batch.to(device, non_blocking=True), second_view_batch.to(device, non_blocking=True)
-
-
 def resolve_project_path(path_text):
     configured_path = Path(path_text)
 
@@ -211,8 +234,10 @@ def resolve_project_path(path_text):
     return str(PROJECT_DIR / configured_path)
 
 
-def resolve_training_config():
+def resolve_training_config(command_arguments=None):
     training_config = apply_environment_overrides(config.get_training_config())
+    if command_arguments is not None:
+        apply_argument_overrides(training_config, command_arguments)
 
     if training_config["device"] == training_config["auto_device"]:
         if torch.cuda.is_available():
@@ -261,27 +286,20 @@ def update_training_step_config(training_config, dataloader):
         training_config["epochs"] * len(dataloader)
         + training_config["official_train_steps_offset"]
     )
-    resolve_train_loss_stop_start_epoch(training_config)
 
 
-def main():
-    training_config = resolve_training_config()
+def main(command_line_arguments=None):
+    argument_parser = create_argument_parser()
+    command_arguments = argument_parser.parse_args(command_line_arguments)
+    training_config = resolve_training_config(command_arguments)
     set_random_seed(training_config)
 
     device = torch.device(training_config["device"])
     run_dir = create_run_dir(training_config)
 
     pair_transform = SimclrPairTransform(training_config)
-    full_training_dataset = create_cifar_dataset(training_config, pair_transform)
-    training_dataset, validation_dataset = create_train_validation_datasets(full_training_dataset, training_config)
+    training_dataset = create_cifar_dataset(training_config, pair_transform)
     dataloader = create_dataloader(training_dataset, training_config, device)
-    validation_dataloader = create_dataloader(
-        validation_dataset,
-        training_config,
-        device,
-        shuffle=False,
-        drop_last=training_config["dataloader_drop_last"],
-    )
     update_training_step_config(training_config, dataloader)
     write_training_config(run_dir, training_config)
 
@@ -290,14 +308,6 @@ def main():
     optimizer = create_optimizer(model, training_config)
     learning_rate_schedule = create_learning_rate_schedule(training_config)
     scaler = torch.cuda.amp.GradScaler(enabled=training_config["amp"])
-    early_stopping = EarlyStopping(
-        training_config["early_stop_min_delta"],
-        training_config["early_stop_patience"],
-    )
-    train_loss_stopping = EarlyStopping(
-        training_config["train_loss_stop_min_delta"],
-        training_config["train_loss_stop_patience"],
-    )
 
     print(training_config["run_dir_log_template"].format(run_dir=run_dir))
     print(training_config["dataset_log_template"].format(dataset=training_config["dataset"]))
@@ -318,45 +328,21 @@ def main():
             training_config,
             epoch,
         )
-        validation_loss = evaluate_one_epoch(model, criterion, validation_dataloader, device, training_config)
-        early_stop_state = early_stopping.update(validation_loss, epoch)
-        train_loss_stop_state = update_train_loss_stopping(train_loss_stopping, average_loss, epoch, training_config)
         print(
             training_config["epoch_log_template"].format(
                 epoch=epoch,
                 average_loss=average_loss,
-                validation_loss=validation_loss,
                 learning_rate=learning_rate,
-                best_val_loss=early_stop_state["best_val_loss"],
-                early_stop_wait=early_stop_state["wait_count"],
             )
         )
-
-        if training_config["save_best_checkpoint"] and early_stop_state["improved"]:
-            save_checkpoint(
-                run_dir,
-                model,
-                optimizer,
-                epoch,
-                training_config,
-                training_config["best_checkpoint_file_name"],
-            )
-
-        if train_loss_stop_state["should_stop"]:
-            print(
-                "train_loss_stop "
-                f"epoch={epoch} best_epoch={train_loss_stop_state['best_epoch']} "
-                f"best_train_loss={train_loss_stop_state['best_loss']:.4f}"
-            )
-            break
-
-        if training_config["early_stop_enabled"] and early_stop_state["should_stop"]:
-            print(
-                "early_stop "
-                f"epoch={epoch} best_epoch={early_stop_state['best_epoch']} "
-                f"best_val_loss={early_stop_state['best_val_loss']:.4f}"
-            )
-            break
+        save_checkpoint(
+            run_dir,
+            model,
+            optimizer,
+            epoch,
+            training_config,
+            training_config["best_checkpoint_file_name"],
+        )
 
 
 if __name__ == "__main__":

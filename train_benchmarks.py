@@ -9,20 +9,12 @@ from common.training_outputs import create_dataset_batch_best_basename
 PROJECT_DIR = Path(__file__).resolve().parent
 PYTHON_BIN = PROJECT_DIR / ".venv" / "bin" / "python"
 
-FINAL_PRETRAIN_EPOCHS = int(os.environ.get("RS_BENCHMARK_EPOCHS", "400"))
-FINAL_PRETRAIN_SAVE_EVERY = int(os.environ.get("RS_BENCHMARK_SAVE_EVERY", "100"))
-FINAL_PRETRAIN_EARLY_STOP_ENABLED = os.environ.get("RS_BENCHMARK_EARLY_STOP_ENABLED", "false")
-FINAL_PRETRAIN_EARLY_STOP_MIN_DELTA = os.environ.get("RS_BENCHMARK_EARLY_STOP_MIN_DELTA", "0.0003")
-FINAL_PRETRAIN_EARLY_STOP_PATIENCE = os.environ.get("RS_BENCHMARK_EARLY_STOP_PATIENCE", "5")
-FINAL_PRETRAIN_TRAIN_LOSS_STOP_ENABLED = os.environ.get("RS_BENCHMARK_TRAIN_LOSS_STOP_ENABLED", "true")
-FINAL_PRETRAIN_TRAIN_LOSS_STOP_START_EPOCH = os.environ.get("RS_BENCHMARK_TRAIN_LOSS_STOP_START_EPOCH", "0")
-FINAL_PRETRAIN_TRAIN_LOSS_STOP_MIN_DELTA = os.environ.get("RS_BENCHMARK_TRAIN_LOSS_STOP_MIN_DELTA", "0.01")
-FINAL_PRETRAIN_TRAIN_LOSS_STOP_PATIENCE = os.environ.get("RS_BENCHMARK_TRAIN_LOSS_STOP_PATIENCE", "5")
+FINAL_PRETRAIN_EPOCHS = int(os.environ.get("RS_BENCHMARK_EPOCHS", "1000"))
 MODEL_FILTER = os.environ.get("RS_BENCHMARK_MODELS", "")
 DATASET_FILTER = os.environ.get("RS_BENCHMARK_DATASETS", "")
 BATCH_SIZE_FILTER = os.environ.get("RS_BENCHMARK_BATCH_SIZES", "")
 
-DATASETS = ("cifar100", "cifar10")
+DATASETS = ("cifar10",)
 
 BASE_EXPERIMENTS = (
     {
@@ -43,24 +35,6 @@ BASE_EXPERIMENTS = (
         "batch_size": 256,
         "output_dir": "benchmark/simclr/pretrained",
     },
-    {
-        "model": "simclr",
-        "script": "benchmark/simclr/train.py",
-        "batch_size": 128,
-        "output_dir": "benchmark/simclr/pretrained",
-    },
-    {
-        "model": "byol",
-        "script": "benchmark/byol/train.py",
-        "batch_size": 1024,
-        "output_dir": "benchmark/byol/pretrained",
-    },
-    {
-        "model": "simsiam",
-        "script": "benchmark/simsiam/train.py",
-        "batch_size": 1024,
-        "output_dir": "benchmark/simsiam/pretrained",
-    },
 )
 
 
@@ -71,30 +45,25 @@ def get_python_bin():
     return sys.executable
 
 
-def create_experiment_env(experiment):
-    environment = os.environ.copy()
-    artifact_basename = create_experiment_artifact_basename(experiment)
-    environment_updates = {
-        "PYTHONWARNINGS": "ignore::FutureWarning",
-        "RS_DATASET": experiment["dataset"],
-        "RS_EPOCHS": str(FINAL_PRETRAIN_EPOCHS),
-        "RS_BATCH_SIZE": str(experiment["batch_size"]),
-        "RS_SAVE_EVERY": str(FINAL_PRETRAIN_SAVE_EVERY),
-        "RS_OUTPUT_DIR": experiment["output_dir"],
-        "RS_EARLY_STOP_ENABLED": FINAL_PRETRAIN_EARLY_STOP_ENABLED,
-        "RS_EARLY_STOP_MIN_DELTA": FINAL_PRETRAIN_EARLY_STOP_MIN_DELTA,
-        "RS_EARLY_STOP_PATIENCE": FINAL_PRETRAIN_EARLY_STOP_PATIENCE,
-        "RS_TRAIN_LOSS_STOP_ENABLED": FINAL_PRETRAIN_TRAIN_LOSS_STOP_ENABLED,
-        "RS_TRAIN_LOSS_STOP_START_EPOCH": FINAL_PRETRAIN_TRAIN_LOSS_STOP_START_EPOCH,
-        "RS_TRAIN_LOSS_STOP_MIN_DELTA": FINAL_PRETRAIN_TRAIN_LOSS_STOP_MIN_DELTA,
-        "RS_TRAIN_LOSS_STOP_PATIENCE": FINAL_PRETRAIN_TRAIN_LOSS_STOP_PATIENCE,
-        "RS_SUPPRESS_EXTERNAL_PROGRESS": "true",
-        "RS_CONFIG_FILE_NAME": f"{artifact_basename}.json",
-        "RS_CHECKPOINT_FILE_TEMPLATE": f"{artifact_basename}.pt",
-        "RS_BEST_CHECKPOINT_FILE_NAME": f"{artifact_basename}.pt",
-    }
+def create_experiment_command(experiment):
+    return [
+        get_python_bin(),
+        experiment["script"],
+        "--dataset",
+        experiment["dataset"],
+        "--epochs",
+        str(FINAL_PRETRAIN_EPOCHS),
+        "--batch-size",
+        str(experiment["batch_size"]),
+        "--output-dir",
+        experiment["output_dir"],
+        "--suppress-external-progress",
+    ]
 
-    environment.update(environment_updates)
+
+def create_experiment_env():
+    environment = os.environ.copy()
+    environment["PYTHONWARNINGS"] = "ignore::FutureWarning"
     return environment
 
 
@@ -134,7 +103,7 @@ def should_run_experiment(experiment):
 
 def run_experiment(experiment):
     log_path = create_log_path(experiment)
-    command = [get_python_bin(), experiment["script"]]
+    command = create_experiment_command(experiment)
 
     print(f"start {experiment['name']} log={log_path}", flush=True)
 
@@ -142,7 +111,7 @@ def run_experiment(experiment):
         completed_process = subprocess.run(
             command,
             cwd=PROJECT_DIR,
-            env=create_experiment_env(experiment),
+            env=create_experiment_env(),
             stdout=log_file,
             stderr=subprocess.STDOUT,
             text=True,
