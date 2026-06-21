@@ -39,3 +39,9 @@ batch=512 lr=1.0 temp=0.1 neg=128 fail runtime_error: non-finite validation loss
 batch=512 lr=1.0 temp=0.1 neg=256 score=0.1202 drop=0.1604 bumps=2 val=5.5457->4.6560 epochs=10->60 train=6.4673->3.9851 peak=12910.0MB
 batch=512 lr=1.0 temp=0.1 neg=512 score=0.1355 drop=0.1573 bumps=1 val=6.2271->5.2476 epochs=10->60 train=7.1645->4.6471 peak=12910.0MB
 batch=512 lr=1.0 temp=0.5 neg=64 score=0.1049 drop=0.1681 bumps=3 val=4.1609->3.4616 epochs=10->60 train=4.1528->3.3439 peak=12909.8MB
+batch=512 lr=1.0 temp=0.5 neg=128 score=0.1169 drop=0.1589 bumps=2 val=4.8499->4.0793 epochs=10->60 train=4.8371->3.9823 peak=12909.8MB
+batch=512 lr=1.0 temp=0.5 neg=256 score=0.0939 drop=0.1349 bumps=2 val=5.5436->4.7959 epochs=10->60 train=5.5252->4.7086 peak=12909.8MB
+batch=512 lr=1.0 temp=0.5 neg=512 score=0.0496 drop=0.0907 bumps=2 val=6.2335->5.6684 epochs=10->60 train=6.2165->5.3526 peak=12909.8MB
+batch=512 lr=1.0 temp=1.0 neg=64 score=0.0336 drop=0.0985 bumps=3 val=4.1534->3.7444 epochs=10->60 train=4.1462->3.6883 peak=12911.5MB
+batch=512 lr=1.0 temp=1.0 neg=128 score=0.0270 drop=0.0901 bumps=3 val=4.8445->4.4078 epochs=10->60 train=4.8311->4.3637 peak=12911.5MB
+batch=512 lr=1.0 temp=1.0 neg=256 score=0.0435 drop=0.0674 bumps=1 val=5.5371->5.1636 epochs=10->60 train=5.5196->5.0587 peak=12911.5MB
