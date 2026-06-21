@@ -25,3 +25,9 @@ Sun Jun 21 10:08:04 UTC 2026
 batch=512 lr=0.5 temp=0.1 neg=64 score=0.0548 drop=0.1005 bumps=2 val=4.1480->3.7312 epochs=10->60 train=5.0876->3.4246 peak=14335.1MB
 batch=512 lr=0.5 temp=0.1 neg=128 score=0.0793 drop=0.1013 bumps=1 val=4.8471->4.3563 epochs=10->60 train=5.7722->4.0762 peak=12910.0MB
 batch=512 lr=0.5 temp=0.1 neg=256 score=0.0320 drop=0.0728 bumps=2 val=5.5286->5.1263 epochs=10->60 train=6.4673->4.8354 peak=12910.0MB
+batch=512 lr=0.5 temp=0.1 neg=512 score=-0.0489 drop=0.0338 bumps=4 val=6.2178->6.0076 epochs=10->60 train=7.1645->5.3996 peak=12910.0MB
+batch=512 lr=0.5 temp=0.5 neg=64 score=0.0276 drop=0.0947 bumps=3 val=4.1437->3.7513 epochs=10->60 train=4.1528->3.5216 peak=12909.8MB
+batch=512 lr=0.5 temp=0.5 neg=128 score=0.0106 drop=0.0574 bumps=2 val=4.8345->4.5572 epochs=10->60 train=4.8371->4.1558 peak=12909.8MB
+batch=512 lr=0.5 temp=0.5 neg=256 score=0.0308 drop=0.0962 bumps=3 val=5.5130->4.9825 epochs=10->60 train=5.5252->4.8330 peak=12909.8MB
+batch=512 lr=0.5 temp=0.5 neg=512 score=0.0261 drop=0.0886 bumps=3 val=6.2150->5.6644 epochs=10->60 train=6.2165->5.5615 peak=12909.8MB
+batch=512 lr=0.5 temp=1.0 neg=64 score=0.0689 drop=0.0906 bumps=1 val=4.1682->3.7907 epochs=10->60 train=4.1462->3.7292 peak=12911.5MB
