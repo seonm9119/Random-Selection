@@ -1,0 +1,27 @@
+██╗   ██╗███████╗███████╗███████╗██╗     
+██║   ██║██╔════╝██╔════╝██╔════╝██║     
+██║   ██║█████╗  ███████╗███████╗██║     
+╚██╗ ██╔╝██╔══╝  ╚════██║╚════██║██║     
+ ╚████╔╝ ███████╗███████║███████║███████╗
+  ╚═══╝  ╚══════╝╚══════╝╚══════╝╚══════╝
+
+Welcome to your VESSL AI Cloud workspace 👋
+⚠️ Warning: No persistent volume mounted to /root ($HOME) - Data will be lost on restart
+
+Cluster storage volumes: (No volumes mounted)
+  -> Shared cluster storage (backed by cluster's fast storage, RWX)
+     Recommended for: datasets, checkpoints, code, virtualenvs, pip/conda environments, frequently accessed data
+
+Object storage volumes: (No volumes mounted)
+  -> Shared object storage (backed by S3 object storage, RWX)
+     Recommended for: large raw datasets, archived models, backups, and infrequently accessed assets
+
+Others
+  -> Temporary volume (ephemeral)
+     WILL BE WIPED WHEN THE WORKSPACE IS PAUSED!!
+
+Happy hacking!
+Sun Jun 21 10:08:04 UTC 2026
+batch=512 lr=0.5 temp=0.1 neg=64 score=0.0548 drop=0.1005 bumps=2 val=4.1480->3.7312 epochs=10->60 train=5.0876->3.4246 peak=14335.1MB
+batch=512 lr=0.5 temp=0.1 neg=128 score=0.0793 drop=0.1013 bumps=1 val=4.8471->4.3563 epochs=10->60 train=5.7722->4.0762 peak=12910.0MB
+batch=512 lr=0.5 temp=0.1 neg=256 score=0.0320 drop=0.0728 bumps=2 val=5.5286->5.1263 epochs=10->60 train=6.4673->4.8354 peak=12910.0MB
