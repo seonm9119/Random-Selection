@@ -9,8 +9,7 @@ dataset/*
 
 runs/
 logs/
-results/
-scripts/
+results/**/*.pt
 benchmark/*/pretrained/*
 !benchmark/*/pretrained/.gitkeep
 rscl/pretrained/*
