@@ -25,6 +25,7 @@ def parse_bool(value):
 def apply_environment_overrides(training_config):
     override_specs = {
         "RS_DATASET": ("dataset", str),
+        "RS_DATASET_DIR": ("dataset_dir", str),
         "RS_OUTPUT_DIR": ("output_dir", str),
         "RS_CONFIG_FILE_NAME": ("config_file_name", str),
         "RS_CHECKPOINT_FILE_TEMPLATE": ("checkpoint_file_template", str),
