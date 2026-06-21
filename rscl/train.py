@@ -20,12 +20,9 @@ PROJECT_DIR = Path(__file__).resolve().parents[config.PROJECT_DIR_PARENT_DEPTH]
 sys.path.insert(0, str(PROJECT_DIR))
 
 from common.training_control import (  # noqa: E402
-    EarlyStopping,
     apply_environment_overrides,
     create_train_validation_datasets,
-    resolve_train_loss_stop_start_epoch,
     suppress_external_progress_output,
-    update_train_loss_stopping,
     validate_training_control_config,
 )
 from common.training_outputs import use_best_artifact_file_names  # noqa: E402
@@ -52,10 +49,32 @@ def create_argument_parser():
     argument_parser.add_argument("--device")
     argument_parser.add_argument("--amp", dest="amp", action="store_true", default=None)
     argument_parser.add_argument("--no-amp", dest="amp", action="store_false")
-    argument_parser.add_argument("--early-stop", dest="early_stop_enabled", action="store_true", default=None)
-    argument_parser.add_argument("--no-early-stop", dest="early_stop_enabled", action="store_false")
-    argument_parser.add_argument("--train-loss-stop", dest="train_loss_stop_enabled", action="store_true", default=None)
-    argument_parser.add_argument("--no-train-loss-stop", dest="train_loss_stop_enabled", action="store_false")
+    argument_parser.add_argument(
+        "--early-stop",
+        dest="ignored_early_stop_enabled",
+        action="store_true",
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    argument_parser.add_argument(
+        "--no-early-stop",
+        dest="ignored_early_stop_enabled",
+        action="store_false",
+        help=argparse.SUPPRESS,
+    )
+    argument_parser.add_argument(
+        "--train-loss-stop",
+        dest="ignored_train_loss_stop_enabled",
+        action="store_true",
+        default=None,
+        help=argparse.SUPPRESS,
+    )
+    argument_parser.add_argument(
+        "--no-train-loss-stop",
+        dest="ignored_train_loss_stop_enabled",
+        action="store_false",
+        help=argparse.SUPPRESS,
+    )
     argument_parser.add_argument("--suppress-external-progress", dest="suppress_external_progress", action="store_true", default=None)
     argument_parser.add_argument("--show-external-progress", dest="suppress_external_progress", action="store_false")
     return argument_parser
@@ -77,8 +96,6 @@ def apply_argument_overrides(training_config, command_arguments):
         "num_workers": command_arguments.num_workers,
         "device": command_arguments.device,
         "amp": command_arguments.amp,
-        "early_stop_enabled": command_arguments.early_stop_enabled,
-        "train_loss_stop_enabled": command_arguments.train_loss_stop_enabled,
         "suppress_external_progress": command_arguments.suppress_external_progress,
     }
 
@@ -322,7 +339,6 @@ def update_training_step_config(training_config, dataloader):
         training_config["epochs"] * len(dataloader)
         + training_config["official_train_steps_offset"]
     )
-    resolve_train_loss_stop_start_epoch(training_config)
 
 
 def main(command_line_arguments=None):
@@ -353,14 +369,7 @@ def main(command_line_arguments=None):
     optimizer = create_optimizer(model, training_config)
     learning_rate_schedule = create_learning_rate_schedule(training_config)
     scaler = torch.cuda.amp.GradScaler(enabled=training_config["amp"])
-    early_stopping = EarlyStopping(
-        training_config["early_stop_min_delta"],
-        training_config["early_stop_patience"],
-    )
-    train_loss_stopping = EarlyStopping(
-        training_config["train_loss_stop_min_delta"],
-        training_config["train_loss_stop_patience"],
-    )
+    best_validation_loss = None
 
     print(training_config["run_dir_log_template"].format(run_dir=run_dir))
     print(training_config["dataset_log_template"].format(dataset=training_config["dataset"]))
@@ -382,20 +391,21 @@ def main(command_line_arguments=None):
             epoch,
         )
         validation_loss = evaluate_one_epoch(model, criterion, validation_dataloader, device, training_config)
-        early_stop_state = early_stopping.update(validation_loss, epoch)
-        train_loss_stop_state = update_train_loss_stopping(train_loss_stopping, average_loss, epoch, training_config)
+        improved = best_validation_loss is None or validation_loss < best_validation_loss
+        if improved:
+            best_validation_loss = validation_loss
+
         print(
             training_config["epoch_log_template"].format(
                 epoch=epoch,
                 average_loss=average_loss,
                 validation_loss=validation_loss,
                 learning_rate=learning_rate,
-                best_val_loss=early_stop_state["best_val_loss"],
-                early_stop_wait=early_stop_state["wait_count"],
+                best_val_loss=best_validation_loss,
             )
         )
 
-        if early_stop_state["improved"]:
+        if improved:
             save_checkpoint(
                 run_dir,
                 model,
@@ -404,22 +414,6 @@ def main(command_line_arguments=None):
                 training_config,
                 training_config["best_checkpoint_file_name"],
             )
-
-        if train_loss_stop_state["should_stop"]:
-            print(
-                "train_loss_stop "
-                f"epoch={epoch} best_epoch={train_loss_stop_state['best_epoch']} "
-                f"best_train_loss={train_loss_stop_state['best_loss']:.4f}"
-            )
-            break
-
-        if training_config["early_stop_enabled"] and early_stop_state["should_stop"]:
-            print(
-                "early_stop "
-                f"epoch={epoch} best_epoch={early_stop_state['best_epoch']} "
-                f"best_val_loss={early_stop_state['best_val_loss']:.4f}"
-            )
-            break
 
 
 if __name__ == "__main__":

@@ -45,13 +45,6 @@ SAVE_EVERY = 100
 MAX_BATCH_SIZE = 1024
 VALIDATION_SIZE = 5000
 VALIDATION_SPLIT_SEED = 0
-EARLY_STOP_ENABLED = False
-EARLY_STOP_MIN_DELTA = 3e-4
-EARLY_STOP_PATIENCE = 5
-TRAIN_LOSS_STOP_ENABLED = False
-TRAIN_LOSS_STOP_START_EPOCH = 0
-TRAIN_LOSS_STOP_MIN_DELTA = 0.01
-TRAIN_LOSS_STOP_PATIENCE = 5
 
 PROJECT_DIR_PARENT_DEPTH = 1
 AUTO_DEVICE = "auto"
@@ -168,7 +161,7 @@ DEVICE_LOG_TEMPLATE = "device={device}"
 AMP_LOG_TEMPLATE = "amp={amp}"
 EPOCH_LOG_TEMPLATE = (
     "epoch={epoch} train_loss={average_loss:.4f} val_loss={validation_loss:.4f} "
-    "lr={learning_rate:.6f} best_val_loss={best_val_loss:.4f} early_stop_wait={early_stop_wait}"
+    "lr={learning_rate:.6f} best_val_loss={best_val_loss:.4f}"
 )
 
 
@@ -211,13 +204,6 @@ def get_training_config():
         "max_batch_size": MAX_BATCH_SIZE,
         "validation_size": VALIDATION_SIZE,
         "validation_split_seed": VALIDATION_SPLIT_SEED,
-        "early_stop_enabled": EARLY_STOP_ENABLED,
-        "early_stop_min_delta": EARLY_STOP_MIN_DELTA,
-        "early_stop_patience": EARLY_STOP_PATIENCE,
-        "train_loss_stop_enabled": TRAIN_LOSS_STOP_ENABLED,
-        "train_loss_stop_start_epoch": TRAIN_LOSS_STOP_START_EPOCH,
-        "train_loss_stop_min_delta": TRAIN_LOSS_STOP_MIN_DELTA,
-        "train_loss_stop_patience": TRAIN_LOSS_STOP_PATIENCE,
         "project_dir_parent_depth": PROJECT_DIR_PARENT_DEPTH,
         "auto_device": AUTO_DEVICE,
         "cuda_device": CUDA_DEVICE,
