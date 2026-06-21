@@ -1,6 +1,6 @@
 CIFAR10_DATASET_NAME = "cifar10"
 CIFAR100_DATASET_NAME = "cifar100"
-DATASET = CIFAR100_DATASET_NAME
+DATASET = CIFAR10_DATASET_NAME
 DATASET_DIR = "dataset"
 OUTPUT_DIR = "rscl/pretrained"
 SUPPORTED_DATASETS = (CIFAR10_DATASET_NAME, CIFAR100_DATASET_NAME)
@@ -11,8 +11,9 @@ BASELINE_REFERENCE = "A Simple Framework for Contrastive Learning of Visual Repr
 BASELINE_PAPER_URL = "https://arxiv.org/abs/2002.05709"
 BASELINE_OFFICIAL_GITHUB = "https://github.com/google-research/simclr"
 
-EPOCHS = 400
+EPOCHS = 500
 BATCH_SIZE = 1024
+PLANNED_BATCH_SIZES = (1024, 512, 256)
 PAPER_EPOCH_OPTIONS = (100, 500)
 PAPER_BATCH_SIZE_OPTIONS = (256, 512)
 PAPER_DATASET_EXPERIMENTS = {
@@ -28,13 +29,15 @@ PAPER_DATASET_EXPERIMENTS = {
 NUM_WORKERS = 4
 IMAGE_SIZE = 32
 TEMPERATURE = 0.5
-LEARNING_RATE = 0.3
+SIMCLR_LEARNING_RATE_OPTIONS = (0.5, 1.0, 1.5)
+SIMCLR_TEMPERATURE_OPTIONS = (0.1, 0.5, 1.0)
+LEARNING_RATE = 1.0
 LEARNING_RATE_SCALING_LINEAR = "linear"
 LEARNING_RATE_SCALING_SQRT = "sqrt"
 LEARNING_RATE_SCALING = LEARNING_RATE_SCALING_LINEAR
 LEARNING_RATE_SCALE_REFERENCE_BATCH_SIZE = 256
 WARMUP_EPOCHS = 10
-WEIGHT_DECAY = 1e-4
+WEIGHT_DECAY = 1e-6
 SEED = 0
 DEVICE = "auto"
 AMP = True
@@ -45,7 +48,7 @@ VALIDATION_SPLIT_SEED = 0
 EARLY_STOP_ENABLED = False
 EARLY_STOP_MIN_DELTA = 3e-4
 EARLY_STOP_PATIENCE = 5
-TRAIN_LOSS_STOP_ENABLED = True
+TRAIN_LOSS_STOP_ENABLED = False
 TRAIN_LOSS_STOP_START_EPOCH = 0
 TRAIN_LOSS_STOP_MIN_DELTA = 0.01
 TRAIN_LOSS_STOP_PATIENCE = 5
@@ -118,6 +121,7 @@ BATCH_CONCAT_DIM = 0
 FEATURE_NORMALIZE_DIM = 1
 HIDDEN_NORM = True
 RANDOM_NEGATIVE_COUNT = 128
+RANDOM_NEGATIVE_COUNT_OPTIONS = (64, 128, 256, 512)
 NEGATIVE_MASS_SCALE = 1.0
 TENSOR_SAMPLE_DIM = 0
 CONTRASTIVE_LARGE_NUM = 1e9
@@ -184,12 +188,15 @@ def get_training_config():
         "supported_datasets": SUPPORTED_DATASETS,
         "epochs": EPOCHS,
         "batch_size": BATCH_SIZE,
+        "planned_batch_sizes": PLANNED_BATCH_SIZES,
         "paper_epoch_options": PAPER_EPOCH_OPTIONS,
         "paper_batch_size_options": PAPER_BATCH_SIZE_OPTIONS,
         "paper_dataset_experiments": PAPER_DATASET_EXPERIMENTS,
         "num_workers": NUM_WORKERS,
         "image_size": IMAGE_SIZE,
         "temperature": TEMPERATURE,
+        "simclr_learning_rate_options": SIMCLR_LEARNING_RATE_OPTIONS,
+        "simclr_temperature_options": SIMCLR_TEMPERATURE_OPTIONS,
         "learning_rate": LEARNING_RATE,
         "learning_rate_scaling_linear": LEARNING_RATE_SCALING_LINEAR,
         "learning_rate_scaling_sqrt": LEARNING_RATE_SCALING_SQRT,
@@ -271,6 +278,7 @@ def get_training_config():
         "feature_normalize_dim": FEATURE_NORMALIZE_DIM,
         "hidden_norm": HIDDEN_NORM,
         "random_negative_count": RANDOM_NEGATIVE_COUNT,
+        "random_negative_count_options": RANDOM_NEGATIVE_COUNT_OPTIONS,
         "negative_mass_scale": NEGATIVE_MASS_SCALE,
         "tensor_sample_dim": TENSOR_SAMPLE_DIM,
         "contrastive_large_num": CONTRASTIVE_LARGE_NUM,

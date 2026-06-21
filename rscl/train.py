@@ -1,3 +1,4 @@
+import argparse
 import json
 import math
 import random
@@ -28,6 +29,64 @@ from common.training_control import (  # noqa: E402
     validate_training_control_config,
 )
 from common.training_outputs import use_best_artifact_file_names  # noqa: E402
+
+
+def create_argument_parser():
+    learning_rate_scaling_choices = (
+        config.LEARNING_RATE_SCALING_LINEAR,
+        config.LEARNING_RATE_SCALING_SQRT,
+    )
+    argument_parser = argparse.ArgumentParser(description="Train RSCL pretraining model.")
+    argument_parser.add_argument("--dataset", choices=config.SUPPORTED_DATASETS)
+    argument_parser.add_argument("--epochs", type=int)
+    argument_parser.add_argument("--batch-size", type=int)
+    argument_parser.add_argument("--output-dir")
+    argument_parser.add_argument("--learning-rate", type=float)
+    argument_parser.add_argument("--learning-rate-scaling", choices=learning_rate_scaling_choices)
+    argument_parser.add_argument("--temperature", type=float)
+    argument_parser.add_argument("--random-negative-count", type=int)
+    argument_parser.add_argument("--negative-mass-scale", type=float)
+    argument_parser.add_argument("--weight-decay", type=float)
+    argument_parser.add_argument("--warmup-epochs", type=int)
+    argument_parser.add_argument("--num-workers", type=int)
+    argument_parser.add_argument("--device")
+    argument_parser.add_argument("--amp", dest="amp", action="store_true", default=None)
+    argument_parser.add_argument("--no-amp", dest="amp", action="store_false")
+    argument_parser.add_argument("--early-stop", dest="early_stop_enabled", action="store_true", default=None)
+    argument_parser.add_argument("--no-early-stop", dest="early_stop_enabled", action="store_false")
+    argument_parser.add_argument("--train-loss-stop", dest="train_loss_stop_enabled", action="store_true", default=None)
+    argument_parser.add_argument("--no-train-loss-stop", dest="train_loss_stop_enabled", action="store_false")
+    argument_parser.add_argument("--suppress-external-progress", dest="suppress_external_progress", action="store_true", default=None)
+    argument_parser.add_argument("--show-external-progress", dest="suppress_external_progress", action="store_false")
+    return argument_parser
+
+
+def apply_argument_overrides(training_config, command_arguments):
+    override_values = {
+        "dataset": command_arguments.dataset,
+        "epochs": command_arguments.epochs,
+        "batch_size": command_arguments.batch_size,
+        "output_dir": command_arguments.output_dir,
+        "learning_rate": command_arguments.learning_rate,
+        "learning_rate_scaling": command_arguments.learning_rate_scaling,
+        "temperature": command_arguments.temperature,
+        "random_negative_count": command_arguments.random_negative_count,
+        "negative_mass_scale": command_arguments.negative_mass_scale,
+        "weight_decay": command_arguments.weight_decay,
+        "warmup_epochs": command_arguments.warmup_epochs,
+        "num_workers": command_arguments.num_workers,
+        "device": command_arguments.device,
+        "amp": command_arguments.amp,
+        "early_stop_enabled": command_arguments.early_stop_enabled,
+        "train_loss_stop_enabled": command_arguments.train_loss_stop_enabled,
+        "suppress_external_progress": command_arguments.suppress_external_progress,
+    }
+
+    for config_name, override_value in override_values.items():
+        if override_value is not None:
+            training_config[config_name] = override_value
+
+    return training_config
 
 
 def get_crop_interpolation(training_config):
@@ -208,8 +267,10 @@ def resolve_project_path(path_text):
     return str(PROJECT_DIR / configured_path)
 
 
-def resolve_training_config():
+def resolve_training_config(command_arguments=None):
     training_config = apply_environment_overrides(config.get_training_config())
+    if command_arguments is not None:
+        apply_argument_overrides(training_config, command_arguments)
 
     if training_config["device"] == training_config["auto_device"]:
         if torch.cuda.is_available():
@@ -264,8 +325,10 @@ def update_training_step_config(training_config, dataloader):
     resolve_train_loss_stop_start_epoch(training_config)
 
 
-def main():
-    training_config = resolve_training_config()
+def main(command_line_arguments=None):
+    argument_parser = create_argument_parser()
+    command_arguments = argument_parser.parse_args(command_line_arguments)
+    training_config = resolve_training_config(command_arguments)
     set_random_seed(training_config)
 
     device = torch.device(training_config["device"])
