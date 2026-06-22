@@ -5,12 +5,8 @@ code_style.txt
 token.txt
 
 dataset/*
-!dataset/.gitkeep
 
 runs/
 logs/
 results/**/*.pt
-benchmark/*/pretrained/*
-!benchmark/*/pretrained/.gitkeep
-rscl/pretrained/*
-!rscl/pretrained/.gitkeep
+**/pretrained/*
