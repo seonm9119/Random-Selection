@@ -445,21 +445,58 @@ def write_results(output_path, results):
     return resolved_output_path
 
 
-def run_search(args):
-    results = []
+def load_existing_results(output_path):
+    resolved_output_path = PROJECT_DIR / output_path
+
+    if not resolved_output_path.exists():
+        return []
+
+    payload = json.loads(resolved_output_path.read_text(encoding="utf-8"))
+    return payload.get("results", [])
+
+
+def create_result_key(result):
+    return (
+        result["batch_size"],
+        result["learning_rate"],
+        result["temperature"],
+        result["negative_count"],
+    )
+
+
+def build_best_by_batch(results):
     best_by_batch = {}
+    batch_sizes = sorted({result["batch_size"] for result in results})
+
+    for batch_size in batch_sizes:
+        batch_results = [result for result in results if result["batch_size"] == batch_size]
+        best_by_batch[str(batch_size)] = get_best_result(batch_results)
+
+    return best_by_batch
+
+
+def run_search(args):
+    results = load_existing_results(args.output_path)
+    result_keys = {create_result_key(result) for result in results}
+    best_by_batch = build_best_by_batch(results)
 
     for batch_size in args.batch_sizes:
-        batch_results = []
-
         for learning_rate, temperature, negative_count in product(
             args.learning_rates,
             args.temperatures,
             args.negative_counts,
         ):
+            result_key = (batch_size, learning_rate, temperature, negative_count)
+            if result_key in result_keys:
+                print(
+                    f"skip batch={batch_size} lr={learning_rate} temp={temperature} neg={negative_count}",
+                    flush=True,
+                )
+                continue
+
             result = run_combination(args, batch_size, learning_rate, temperature, negative_count)
             results.append(result)
-            batch_results.append(result)
+            result_keys.add(result_key)
 
             if result["ok"]:
                 print(
@@ -479,7 +516,7 @@ def run_search(args):
                     flush=True,
                 )
 
-            best_by_batch[str(batch_size)] = get_best_result(batch_results)
+            best_by_batch = build_best_by_batch(results)
             write_results(args.output_path, create_results_payload(args, results, best_by_batch, partial=True))
 
     return create_results_payload(args, results, best_by_batch, partial=False)
