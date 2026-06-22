@@ -77,6 +77,8 @@ def create_argument_parser():
     )
     argument_parser.add_argument("--suppress-external-progress", dest="suppress_external_progress", action="store_true", default=None)
     argument_parser.add_argument("--show-external-progress", dest="suppress_external_progress", action="store_false")
+    argument_parser.add_argument("--resume-checkpoint")
+    argument_parser.add_argument("--resume-best-val-loss", type=float)
     return argument_parser
 
 
@@ -224,6 +226,13 @@ def save_checkpoint(run_dir, model, optimizer, epoch, training_config, checkpoin
     )
 
 
+def load_checkpoint(checkpoint_path, model, optimizer, device, training_config):
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint[training_config["checkpoint_model_key"]])
+    optimizer.load_state_dict(checkpoint[training_config["checkpoint_optimizer_key"]])
+    return checkpoint[training_config["checkpoint_epoch_key"]]
+
+
 def train_one_epoch(model, criterion, dataloader, optimizer, learning_rate_schedule, scaler, device, training_config, epoch):
     model.train()
     epoch_loss_sum = training_config["epoch_loss_initial_value"]
@@ -369,16 +378,29 @@ def main(command_line_arguments=None):
     optimizer = create_optimizer(model, training_config)
     learning_rate_schedule = create_learning_rate_schedule(training_config)
     scaler = torch.cuda.amp.GradScaler(enabled=training_config["amp"])
-    best_validation_loss = None
+    best_validation_loss = command_arguments.resume_best_val_loss
+    start_epoch = training_config["training_start_epoch"]
+
+    if command_arguments.resume_checkpoint:
+        checkpoint_epoch = load_checkpoint(
+            command_arguments.resume_checkpoint,
+            model,
+            optimizer,
+            device,
+            training_config,
+        )
+        start_epoch = checkpoint_epoch + 1
 
     print(training_config["run_dir_log_template"].format(run_dir=run_dir))
     print(training_config["dataset_log_template"].format(dataset=training_config["dataset"]))
     print(training_config["device_log_template"].format(device=device))
     print(training_config["amp_log_template"].format(amp=training_config["amp"]))
+    if command_arguments.resume_checkpoint:
+        print(f"resume_checkpoint={command_arguments.resume_checkpoint} resume_start_epoch={start_epoch}")
 
     last_epoch = training_config["epochs"] + training_config["training_start_epoch"]
 
-    for epoch in range(training_config["training_start_epoch"], last_epoch):
+    for epoch in range(start_epoch, last_epoch):
         average_loss, learning_rate = train_one_epoch(
             model,
             criterion,
