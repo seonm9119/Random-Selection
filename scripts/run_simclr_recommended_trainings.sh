@@ -19,32 +19,23 @@ run_training() {
   local learning_rate="$3"
   local temperature="$4"
   local basename="${dataset}_batch_${batch_size}_best"
-  local log_path="$OUTPUT_DIR/${basename}.log"
 
   echo "running=$basename started_at=$(date -Is)" >>"$STATUS_FILE"
 
   set +e
-  {
-    echo "started_at=$(date -Is)"
-    echo "dataset=$dataset"
-    echo "batch_size=$batch_size"
-    echo "learning_rate=$learning_rate"
-    echo "temperature=$temperature"
-    "$PYTHON_BIN" -B "$TRAIN_SCRIPT" \
-      --dataset "$dataset" \
-      --epochs 500 \
-      --batch-size "$batch_size" \
-      --output-dir "$OUTPUT_DIR" \
-      --learning-rate "$learning_rate" \
-      --temperature "$temperature" \
-      --weight-decay 1e-6 \
-      --warmup-epochs 10 \
-      --num-workers 4 \
-      --device cuda \
-      --amp \
-      --suppress-external-progress
-    echo "finished_at=$(date -Is)"
-  } >"$log_path" 2>&1
+  "$PYTHON_BIN" -B "$TRAIN_SCRIPT" \
+    --dataset "$dataset" \
+    --epochs 500 \
+    --batch-size "$batch_size" \
+    --output-dir "$OUTPUT_DIR" \
+    --learning-rate "$learning_rate" \
+    --temperature "$temperature" \
+    --weight-decay 1e-6 \
+    --warmup-epochs 10 \
+    --num-workers 4 \
+    --device cuda \
+    --amp \
+    --suppress-external-progress
   local exit_code=$?
   set -e
 

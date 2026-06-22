@@ -1,8 +1,10 @@
 import argparse
+import contextlib
 import json
 import math
 import random
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import config
@@ -48,6 +50,8 @@ def create_argument_parser():
     argument_parser.add_argument("--no-amp", dest="amp", action="store_false")
     argument_parser.add_argument("--suppress-external-progress", dest="suppress_external_progress", action="store_true", default=None)
     argument_parser.add_argument("--show-external-progress", dest="suppress_external_progress", action="store_false")
+    argument_parser.add_argument("--resume-checkpoint")
+    argument_parser.add_argument("--no-resume-existing-checkpoint", action="store_true")
     return argument_parser
 
 
@@ -140,6 +144,16 @@ def write_training_config(run_dir, training_config):
     config_path.write_text(config_text, encoding=training_config["text_encoding"])
 
 
+@contextlib.contextmanager
+def redirect_console_to_run_log(run_dir, training_config, append_log=False):
+    log_path = run_dir / training_config["console_log_file_name"]
+    log_mode = "a" if append_log else "w"
+
+    with log_path.open(log_mode, encoding=training_config["text_encoding"], buffering=1) as log_file:
+        with contextlib.redirect_stdout(log_file), contextlib.redirect_stderr(log_file):
+            yield
+
+
 def create_cifar_dataset(training_config, pair_transform):
     dataset_classes = {
         training_config["cifar10_dataset_name"]: torchvision.datasets.CIFAR10,
@@ -191,6 +205,13 @@ def save_checkpoint(run_dir, model, optimizer, epoch, training_config, checkpoin
         },
         checkpoint_path,
     )
+
+
+def load_checkpoint(checkpoint_path, model, optimizer, device, training_config):
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint[training_config["checkpoint_model_key"]])
+    optimizer.load_state_dict(checkpoint[training_config["checkpoint_optimizer_key"]])
+    return checkpoint[training_config["checkpoint_epoch_key"]]
 
 
 def train_one_epoch(model, criterion, dataloader, optimizer, learning_rate_schedule, scaler, device, training_config, epoch):
@@ -288,6 +309,20 @@ def update_training_step_config(training_config, dataloader):
     )
 
 
+def resolve_resume_checkpoint(run_dir, training_config, command_arguments):
+    if command_arguments.resume_checkpoint:
+        return Path(command_arguments.resume_checkpoint)
+
+    if command_arguments.no_resume_existing_checkpoint:
+        return None
+
+    checkpoint_path = run_dir / training_config["best_checkpoint_file_name"]
+    if checkpoint_path.exists():
+        return checkpoint_path
+
+    return None
+
+
 def main(command_line_arguments=None):
     argument_parser = create_argument_parser()
     command_arguments = argument_parser.parse_args(command_line_arguments)
@@ -296,6 +331,14 @@ def main(command_line_arguments=None):
 
     device = torch.device(training_config["device"])
     run_dir = create_run_dir(training_config)
+    resume_checkpoint = resolve_resume_checkpoint(run_dir, training_config, command_arguments)
+
+    with redirect_console_to_run_log(run_dir, training_config, append_log=resume_checkpoint is not None):
+        run_training(run_dir, device, training_config, resume_checkpoint)
+
+
+def run_training(run_dir, device, training_config, resume_checkpoint=None):
+    print(f"started_at={datetime.now(timezone.utc).isoformat()}")
 
     pair_transform = SimclrPairTransform(training_config)
     training_dataset = create_cifar_dataset(training_config, pair_transform)
@@ -308,15 +351,31 @@ def main(command_line_arguments=None):
     optimizer = create_optimizer(model, training_config)
     learning_rate_schedule = create_learning_rate_schedule(training_config)
     scaler = torch.cuda.amp.GradScaler(enabled=training_config["amp"])
+    start_epoch = training_config["training_start_epoch"]
+
+    if resume_checkpoint is not None:
+        checkpoint_epoch = load_checkpoint(
+            resume_checkpoint,
+            model,
+            optimizer,
+            device,
+            training_config,
+        )
+        start_epoch = checkpoint_epoch + 1
 
     print(training_config["run_dir_log_template"].format(run_dir=run_dir))
     print(training_config["dataset_log_template"].format(dataset=training_config["dataset"]))
+    print(f"batch_size={training_config['batch_size']}")
+    print(f"learning_rate={training_config['learning_rate']}")
+    print(f"temperature={training_config['temperature']}")
     print(training_config["device_log_template"].format(device=device))
     print(training_config["amp_log_template"].format(amp=training_config["amp"]))
+    if resume_checkpoint is not None:
+        print(f"resume_checkpoint={resume_checkpoint} resume_start_epoch={start_epoch}")
 
     last_epoch = training_config["epochs"] + training_config["training_start_epoch"]
 
-    for epoch in range(training_config["training_start_epoch"], last_epoch):
+    for epoch in range(start_epoch, last_epoch):
         average_loss, learning_rate = train_one_epoch(
             model,
             criterion,
@@ -343,6 +402,8 @@ def main(command_line_arguments=None):
             training_config,
             training_config["best_checkpoint_file_name"],
         )
+
+    print(f"finished_at={datetime.now(timezone.utc).isoformat()}")
 
 
 if __name__ == "__main__":
