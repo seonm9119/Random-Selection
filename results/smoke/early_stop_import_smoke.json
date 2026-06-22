@@ -1,0 +1,70 @@
+{
+  "amp": true,
+  "batch_sizes": [
+    32
+  ],
+  "device": {
+    "device": "cuda",
+    "name": "NVIDIA GeForce RTX 3060",
+    "total_memory_mb": 11911.0625
+  },
+  "image_size": 32,
+  "models": {
+    "byol": {
+      "max_batch_size": 32,
+      "tested": {
+        "32": {
+          "batch_size": 32,
+          "elapsed_seconds": 0.6592044830322266,
+          "loss": 4.010746002197266,
+          "model": "byol",
+          "ok": true,
+          "peak_memory_mb": 341.892578125,
+          "reserved_memory_mb": 364.0
+        }
+      }
+    },
+    "rscl": {
+      "max_batch_size": 32,
+      "tested": {
+        "32": {
+          "batch_size": 32,
+          "elapsed_seconds": 0.6316699981689453,
+          "loss": 4.166387557983398,
+          "model": "rscl",
+          "ok": true,
+          "peak_memory_mb": 246.32666015625,
+          "reserved_memory_mb": 290.0
+        }
+      }
+    },
+    "simclr": {
+      "max_batch_size": 32,
+      "tested": {
+        "32": {
+          "batch_size": 32,
+          "elapsed_seconds": 0.6006584167480469,
+          "loss": 8.39254093170166,
+          "model": "simclr",
+          "ok": true,
+          "peak_memory_mb": 246.32666015625,
+          "reserved_memory_mb": 288.0
+        }
+      }
+    },
+    "simsiam": {
+      "max_batch_size": 32,
+      "tested": {
+        "32": {
+          "batch_size": 32,
+          "elapsed_seconds": 0.6351974010467529,
+          "loss": 0.0005902895936742425,
+          "model": "simsiam",
+          "ok": true,
+          "peak_memory_mb": 273.40380859375,
+          "reserved_memory_mb": 302.0
+        }
+      }
+    }
+  }
+}

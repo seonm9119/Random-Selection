@@ -1,0 +1,217 @@
+{
+  "amp": true,
+  "amp_log_template": "amp={amp}",
+  "auto_device": "auto",
+  "backbone_feature_dims": {
+    "resnet18": 512,
+    "resnet50": 2048
+  },
+  "backbone_name": "resnet18",
+  "batch_concat_dim": 0,
+  "batch_size": 1024,
+  "best_checkpoint_file_name": "cifar100_batch_1024_best.pt",
+  "checkpoint_config_key": "training_config",
+  "checkpoint_epoch_key": "epoch",
+  "checkpoint_file_template": "cifar100_batch_1024_epoch_{epoch:04d}.pt",
+  "checkpoint_model_key": "model",
+  "checkpoint_optimizer_key": "optimizer",
+  "cifar100_dataset_name": "cifar100",
+  "cifar10_dataset_name": "cifar10",
+  "cifar_mean": [
+    0.4914,
+    0.4822,
+    0.4465
+  ],
+  "cifar_std": [
+    0.247,
+    0.2435,
+    0.2616
+  ],
+  "color_jitter_brightness": 0.8,
+  "color_jitter_contrast": 0.8,
+  "color_jitter_hue": 0.2,
+  "color_jitter_probability": 0.8,
+  "color_jitter_saturation": 0.8,
+  "color_strength": 0.5,
+  "config_file_name": "config.json",
+  "contrastive_large_num": 1000000000.0,
+  "contrastive_logit_concat_dim": 1,
+  "cpu_device": "cpu",
+  "crop_interpolation": "bicubic",
+  "crop_ratio": [
+    0.75,
+    1.3333333333333333
+  ],
+  "crop_scale": [
+    0.08,
+    1.0
+  ],
+  "cuda_device": "cuda",
+  "cudnn_benchmark": true,
+  "dataloader_drop_last": true,
+  "dataloader_persistent_workers": true,
+  "dataloader_pin_memory_with_cuda": true,
+  "dataloader_shuffle": true,
+  "dataset": "cifar100",
+  "dataset_dir": "/home/nami/repo/gpt_analysis/project/Random-Selection/dataset",
+  "dataset_log_template": "dataset={dataset}",
+  "device": "cuda",
+  "device_log_template": "device={device}",
+  "download_dataset": true,
+  "early_stop_enabled": false,
+  "early_stop_min_delta": 0.0003,
+  "early_stop_patience": 5,
+  "encoder_feature_dim": 512,
+  "epoch_log_template": "epoch={epoch} train_loss={average_loss:.4f} val_loss={validation_loss:.4f} lr={learning_rate:.6f} best_val_loss={best_val_loss:.4f} early_stop_wait={early_stop_wait}",
+  "epoch_loss_initial_value": 0.0,
+  "epochs": 30,
+  "feature_normalize_dim": 1,
+  "final_epoch_offset": 1,
+  "grayscale_probability": 0.2,
+  "hidden_norm": true,
+  "horizontal_flip_probability": 0.5,
+  "image_size": 32,
+  "json_indent": 2,
+  "json_sort_keys": true,
+  "lars_classic_momentum": true,
+  "lars_eeta": 0.001,
+  "lars_exclude_from_layer_adaptation": [
+    "batch_norm",
+    "bn",
+    "bias",
+    "head_supervised"
+  ],
+  "lars_exclude_from_weight_decay": [
+    "batch_norm",
+    "bn",
+    "bias",
+    "head_supervised"
+  ],
+  "learning_rate": 0.03,
+  "learning_rate_scale_reference_batch_size": 256,
+  "learning_rate_scaling": "linear",
+  "learning_rate_scaling_linear": "linear",
+  "learning_rate_scaling_sqrt": "sqrt",
+  "linear_eval_batch_size": 512,
+  "linear_eval_epochs": 500,
+  "linear_eval_learning_rate": 0.1,
+  "linear_eval_optimizer_name": "lars",
+  "max_batch_size": 1024,
+  "min_worker_count_for_persistence": 0,
+  "momentum": 0.9,
+  "normalize_images": false,
+  "num_proj_layers": 2,
+  "num_workers": 4,
+  "official_github": "https://github.com/google-research/simclr",
+  "official_train_steps_offset": 1,
+  "optimizer_name": "lars",
+  "optimizer_name_adam": "adam",
+  "optimizer_name_lars": "lars",
+  "optimizer_name_momentum": "momentum",
+  "optimizer_set_to_none": true,
+  "output_dir": "/home/nami/repo/gpt_analysis/project/Random-Selection/results/lr_search/simclr/cifar100_batch_1024_lr_0p03",
+  "paper_batch_size_options": [
+    256,
+    512
+  ],
+  "paper_dataset_experiments": {
+    "cifar10": {
+      "batch_sizes": [
+        256,
+        512
+      ],
+      "epochs": [
+        100,
+        500
+      ]
+    },
+    "cifar100": {
+      "batch_sizes": [
+        256,
+        512
+      ],
+      "epochs": [
+        100,
+        500
+      ]
+    }
+  },
+  "paper_epoch_options": [
+    100,
+    500
+  ],
+  "paper_reference": "A Simple Framework for Contrastive Learning of Visual Representations",
+  "paper_setting_source": "2022_KCC_Random_Selection_based_Loss_Function",
+  "paper_url": "https://arxiv.org/abs/2002.05709",
+  "primary_learning_rate_index": 0,
+  "proj_head_mode": "nonlinear",
+  "proj_head_mode_linear": "linear",
+  "proj_head_mode_none": "none",
+  "proj_head_mode_nonlinear": "nonlinear",
+  "proj_out_dim": 128,
+  "project_dir_parent_depth": 2,
+  "projection_hidden_dim": 512,
+  "projection_hidden_dims": {
+    "resnet18": 512,
+    "resnet50": 2048
+  },
+  "projection_relu_inplace": false,
+  "projection_use_batch_norm": true,
+  "resnet18_backbone_name": "resnet18",
+  "resnet50_backbone_name": "resnet50",
+  "resnet_first_conv_bias": false,
+  "resnet_first_conv_in_channels": 3,
+  "resnet_first_conv_kernel_size": 3,
+  "resnet_first_conv_out_channels": 64,
+  "resnet_first_conv_padding": 1,
+  "resnet_first_conv_stride": 1,
+  "resnet_weights": null,
+  "run_dir_log_template": "run_dir={run_dir}",
+  "save_best_checkpoint": false,
+  "save_every": 100,
+  "save_every_remainder": 0,
+  "scaled_learning_rate": 0.12,
+  "seed": 0,
+  "step_start_index": 1,
+  "steps_per_epoch": 43,
+  "supported_backbones": [
+    "resnet18",
+    "resnet50"
+  ],
+  "supported_datasets": [
+    "cifar10",
+    "cifar100"
+  ],
+  "supported_optimizers": [
+    "momentum",
+    "adam",
+    "lars"
+  ],
+  "supported_proj_head_modes": [
+    "none",
+    "linear",
+    "nonlinear"
+  ],
+  "suppress_external_progress": true,
+  "temperature": 0.5,
+  "tensor_sample_dim": 0,
+  "text_encoding": "utf-8",
+  "total_train_steps": 1291,
+  "train_learning_rate_tag": "train/learning_rate",
+  "train_log_file_name": "train_log.jsonl",
+  "train_loss_epoch_tag": "train/loss_epoch",
+  "train_loss_step_tag": "train/loss_step",
+  "train_loss_stop_enabled": true,
+  "train_loss_stop_min_delta": 0.02,
+  "train_loss_stop_patience": 5,
+  "train_loss_stop_start_epoch": 11,
+  "train_split": true,
+  "training_start_epoch": 1,
+  "use_nesterov": true,
+  "validation_size": 5000,
+  "validation_split_seed": 0,
+  "view_count": 2,
+  "warmup_epochs": 10,
+  "warmup_steps": 430,
+  "weight_decay": 0.0001
+}

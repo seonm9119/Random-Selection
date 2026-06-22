@@ -1,0 +1,5 @@
+run_dir=/home/nami/repo/gpt_analysis/project/Random-Selection/results/lr_search/simclr/cifar100_batch_128_lr_0p03
+dataset=cifar100
+device=cuda
+amp=True
+epoch=1 train_loss=5.1275 val_loss=5.0247 lr=0.000001 best_val_loss=5.0247 early_stop_wait=0

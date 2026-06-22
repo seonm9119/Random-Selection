@@ -1,0 +1,34 @@
+run_dir=/home/nami/repo/gpt_analysis/project/Random-Selection/results/lr_search/simclr/cifar100_batch_1024_lr_0p03
+dataset=cifar100
+device=cuda
+amp=True
+epoch=1 train_loss=7.4488 val_loss=7.4285 lr=0.011721 best_val_loss=7.4285 early_stop_wait=0
+epoch=2 train_loss=7.2833 val_loss=7.1644 lr=0.023721 best_val_loss=7.1644 early_stop_wait=0
+epoch=3 train_loss=7.0886 val_loss=7.0133 lr=0.035721 best_val_loss=7.0133 early_stop_wait=0
+epoch=4 train_loss=6.9597 val_loss=6.9025 lr=0.047721 best_val_loss=6.9025 early_stop_wait=0
+epoch=5 train_loss=6.8814 val_loss=6.8228 lr=0.059721 best_val_loss=6.8228 early_stop_wait=0
+epoch=6 train_loss=6.8130 val_loss=6.7854 lr=0.071721 best_val_loss=6.7854 early_stop_wait=0
+epoch=7 train_loss=6.7678 val_loss=6.7512 lr=0.083721 best_val_loss=6.7512 early_stop_wait=0
+epoch=8 train_loss=6.7335 val_loss=6.7239 lr=0.095721 best_val_loss=6.7239 early_stop_wait=0
+epoch=9 train_loss=6.7104 val_loss=6.6958 lr=0.107721 best_val_loss=6.6958 early_stop_wait=0
+epoch=10 train_loss=6.6786 val_loss=6.6768 lr=0.119721 best_val_loss=6.6768 early_stop_wait=0
+epoch=11 train_loss=6.6554 val_loss=6.6473 lr=0.119297 best_val_loss=6.6473 early_stop_wait=0
+epoch=12 train_loss=6.6320 val_loss=6.6362 lr=0.117137 best_val_loss=6.6362 early_stop_wait=0
+epoch=13 train_loss=6.6144 val_loss=6.6059 lr=0.113574 best_val_loss=6.6059 early_stop_wait=0
+epoch=14 train_loss=6.5990 val_loss=6.6074 lr=0.108695 best_val_loss=6.6059 early_stop_wait=1
+epoch=15 train_loss=6.5852 val_loss=6.5826 lr=0.102619 best_val_loss=6.5826 early_stop_wait=0
+epoch=16 train_loss=6.5727 val_loss=6.5843 lr=0.095497 best_val_loss=6.5826 early_stop_wait=1
+epoch=17 train_loss=6.5649 val_loss=6.5653 lr=0.087502 best_val_loss=6.5653 early_stop_wait=0
+epoch=18 train_loss=6.5572 val_loss=6.5492 lr=0.078832 best_val_loss=6.5492 early_stop_wait=0
+epoch=19 train_loss=6.5502 val_loss=6.5351 lr=0.069699 best_val_loss=6.5351 early_stop_wait=0
+epoch=20 train_loss=6.5428 val_loss=6.5471 lr=0.060328 best_val_loss=6.5351 early_stop_wait=1
+epoch=21 train_loss=6.5430 val_loss=6.5551 lr=0.050949 best_val_loss=6.5351 early_stop_wait=2
+epoch=22 train_loss=6.5320 val_loss=6.5335 lr=0.041792 best_val_loss=6.5335 early_stop_wait=0
+epoch=23 train_loss=6.5311 val_loss=6.5378 lr=0.033083 best_val_loss=6.5335 early_stop_wait=1
+epoch=24 train_loss=6.5291 val_loss=6.5248 lr=0.025035 best_val_loss=6.5248 early_stop_wait=0
+epoch=25 train_loss=6.5258 val_loss=6.5128 lr=0.017845 best_val_loss=6.5128 early_stop_wait=0
+epoch=26 train_loss=6.5257 val_loss=6.5285 lr=0.011692 best_val_loss=6.5128 early_stop_wait=1
+epoch=27 train_loss=6.5244 val_loss=6.5326 lr=0.006725 best_val_loss=6.5128 early_stop_wait=2
+epoch=28 train_loss=6.5257 val_loss=6.5295 lr=0.003067 best_val_loss=6.5128 early_stop_wait=3
+epoch=29 train_loss=6.5192 val_loss=6.5067 lr=0.000807 best_val_loss=6.5067 early_stop_wait=0
+train_loss_stop epoch=29 best_epoch=24 best_train_loss=6.5291
