@@ -1,4 +1,5 @@
 import argparse
+import re
 import time
 from pathlib import Path
 import sys
@@ -74,9 +75,17 @@ def create_output_path(args, eval_config):
         return args.output_path
 
     checkpoint_name = Path(args.checkpoint).stem
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    file_name = f"{args.model}_{eval_config['dataset']}_{checkpoint_name}_{timestamp}.json"
-    return PROJECT_DIR / "results" / "linear_eval" / file_name
+    return PROJECT_DIR / "output" / args.model / f"{checkpoint_name}.json"
+
+
+def parse_pretrain_batch_size(checkpoint_path):
+    checkpoint_name = Path(checkpoint_path).stem
+    match = re.search(r"_batch_(\d+)_", checkpoint_name)
+
+    if match is None:
+        return None
+
+    return int(match.group(1))
 
 
 def train_one_epoch(encoder, classifier, dataloader, criterion, optimizer, device, epoch):
@@ -201,16 +210,23 @@ def main():
 
     output_payload = {
         "model": args.model,
+        "dataset": eval_config["dataset"],
+        "pretrain_batch_size": parse_pretrain_batch_size(args.checkpoint),
+        "linear_eval_batch_size": args.batch_size,
         "checkpoint": str(args.checkpoint),
         "checkpoint_epoch": checkpoint.get("epoch"),
-        "dataset": eval_config["dataset"],
-        "batch_size": args.batch_size,
-        "epochs": args.epochs,
-        "optimizer": args.optimizer,
-        "learning_rate": args.learning_rate,
-        "best_epoch": best_epoch,
-        "best_top1": best_top1,
-        "best_top5": best_top5,
+        "linear_eval": {
+            "epochs": args.epochs,
+            "optimizer": args.optimizer,
+            "learning_rate": args.learning_rate,
+            "momentum": args.momentum,
+            "weight_decay": args.weight_decay,
+        },
+        "best": {
+            "epoch": best_epoch,
+            "top1": best_top1,
+            "top5": best_top5,
+        },
         "history": history,
     }
     output_path = create_output_path(args, eval_config)
