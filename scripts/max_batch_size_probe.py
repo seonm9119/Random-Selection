@@ -12,15 +12,13 @@ PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_BATCH_SIZES = (32, 64, 128, 256, 512, 1024, 2048, 4096)
 MODEL_DIRS = {
     "simclr": PROJECT_DIR / "benchmark" / "simclr",
-    "byol": PROJECT_DIR / "benchmark" / "byol",
-    "simsiam": PROJECT_DIR / "benchmark" / "simsiam",
     "rscl": PROJECT_DIR / "rscl",
 }
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Probe max one-step batch size for SSL models.")
-    parser.add_argument("--models", nargs="+", choices=tuple(MODEL_DIRS.keys()), default=["simclr", "byol", "simsiam", "rscl"])
+    parser.add_argument("--models", nargs="+", choices=tuple(MODEL_DIRS.keys()), default=["simclr", "rscl"])
     parser.add_argument("--batch-sizes", nargs="+", type=int, default=list(DEFAULT_BATCH_SIZES))
     parser.add_argument("--image-size", type=int, default=32)
     parser.add_argument("--device", default="cuda")
@@ -65,10 +63,8 @@ class FakeDataloader:
 
 
 def update_step_config(model_name, train_module, training_config):
-    if model_name in ("simclr", "rscl", "byol"):
+    if model_name in ("simclr", "rscl"):
         train_module.update_training_step_config(training_config, FakeDataloader())
-    elif model_name == "simsiam":
-        training_config["steps_per_epoch"] = 1
 
 
 def run_simclr_like_step(model_name, training_config, device):
@@ -106,63 +102,6 @@ def run_simclr_like_step(model_name, training_config, device):
     return loss.item()
 
 
-def run_byol_step(training_config, device):
-    from loss import ByolRegressionLoss
-    from model import ByolModel
-    from optimizer import create_learning_rate_schedule, create_optimizer, create_target_ema_schedule, set_optimizer_learning_rate
-
-    model = ByolModel(training_config).to(device)
-    criterion = ByolRegressionLoss(training_config).to(device)
-    optimizer = create_optimizer(model, training_config)
-    learning_rate_schedule = create_learning_rate_schedule(training_config)
-    target_ema_schedule = create_target_ema_schedule(training_config)
-    learning_rate = learning_rate_schedule.get_learning_rate(0)
-    target_ema = target_ema_schedule.get_target_ema(0)
-    set_optimizer_learning_rate(optimizer, learning_rate)
-    scaler = torch.cuda.amp.GradScaler(enabled=training_config["amp"])
-
-    first_images = torch.randn(training_config["batch_size"], 3, training_config["image_size"], training_config["image_size"], device=device)
-    second_images = torch.randn_like(first_images)
-    optimizer.zero_grad(set_to_none=training_config["optimizer_set_to_none"])
-
-    with torch.cuda.amp.autocast(enabled=training_config["amp"]):
-        model_outputs = model(first_images, second_images)
-        loss = criterion(model_outputs)
-
-    scaler.scale(loss).backward()
-    scaler.step(optimizer)
-    scaler.update()
-    model.update_target_branch(target_ema)
-    return loss.item()
-
-
-def run_simsiam_step(training_config, device):
-    from loss import NegativeCosineSimilarityLoss
-    from model import SimSiamModel
-    from optimizer import create_learning_rate_schedule, create_optimizer, set_optimizer_learning_rate
-
-    model = SimSiamModel(training_config).to(device)
-    criterion = NegativeCosineSimilarityLoss(training_config).to(device)
-    optimizer = create_optimizer(model, training_config)
-    learning_rate_schedule = create_learning_rate_schedule(training_config)
-    learning_rate = learning_rate_schedule.get_learning_rate(training_config["training_start_epoch"])
-    set_optimizer_learning_rate(optimizer, learning_rate, training_config)
-    scaler = torch.cuda.amp.GradScaler(enabled=training_config["amp"])
-
-    first_images = torch.randn(training_config["batch_size"], 3, training_config["image_size"], training_config["image_size"], device=device)
-    second_images = torch.randn_like(first_images)
-    optimizer.zero_grad(set_to_none=training_config["optimizer_set_to_none"])
-
-    with torch.cuda.amp.autocast(enabled=training_config["amp"]):
-        outputs = model(first_images, second_images)
-        loss = criterion(*outputs)
-
-    scaler.scale(loss).backward()
-    scaler.step(optimizer)
-    scaler.update()
-    return loss.item()
-
-
 def run_worker(args):
     model_name = args.worker_model
     batch_size = args.worker_batch_size
@@ -180,10 +119,6 @@ def run_worker(args):
     try:
         if model_name in ("simclr", "rscl"):
             loss = run_simclr_like_step(model_name, training_config, device)
-        elif model_name == "byol":
-            loss = run_byol_step(training_config, device)
-        elif model_name == "simsiam":
-            loss = run_simsiam_step(training_config, device)
         else:
             raise ValueError(f"Unsupported model: {model_name}")
 

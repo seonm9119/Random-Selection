@@ -21,18 +21,6 @@ MODEL_SPECS = {
         "model_class_name": "RsclModel",
         "encoder_path": "encoder",
     },
-    "byol": {
-        "config_path": PROJECT_DIR / "benchmark" / "byol" / "config.py",
-        "model_path": PROJECT_DIR / "benchmark" / "byol" / "model.py",
-        "model_class_name": "ByolModel",
-        "encoder_path": "online_branch.encoder",
-    },
-    "simsiam": {
-        "config_path": PROJECT_DIR / "benchmark" / "simsiam" / "config.py",
-        "model_path": PROJECT_DIR / "benchmark" / "simsiam" / "model.py",
-        "model_class_name": "SimSiamModel",
-        "encoder_path": "encoder",
-    },
 }
 
 

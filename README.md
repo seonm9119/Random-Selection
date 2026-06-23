@@ -126,18 +126,6 @@ benchmark/
     loss.py
     optimizer.py
     train.py
-  byol/
-    config.py
-    model.py
-    loss.py
-    optimizer.py
-    train.py
-  simsiam/
-    config.py
-    model.py
-    loss.py
-    optimizer.py
-    train.py
 rscl/
   config.py
   model.py
@@ -150,8 +138,6 @@ rscl/
 
 - `SimCLR`: full in-batch negative baseline
 - `RSCL`: random selected negative를 사용하는 제안 모델
-- `BYOL`: negative sample이 없는 SSL 비교군
-- `SimSiam`: negative sample이 없는 SSL 비교군
 
 ## RSCL 설정
 
@@ -208,8 +194,6 @@ warmup 이후에도 train loss가 충분히 내려가지 않으면 해당 learni
 ```text
 datasets: cifar100, cifar10
 SimCLR: 1024, 512, 256, 128
-BYOL: 1024
-SimSiam: 1024
 RSCL: benchmark 실행 목록에서는 제외, 같은 train-loss-stop policy 사용
 ```
 
@@ -233,18 +217,6 @@ SimCLR baseline 학습:
 ./.venv/bin/python benchmark/simclr/train.py
 ```
 
-BYOL 학습:
-
-```bash
-./.venv/bin/python benchmark/byol/train.py
-```
-
-SimSiam 학습:
-
-```bash
-./.venv/bin/python benchmark/simsiam/train.py
-```
-
 비교 모델의 결과는 `benchmark/<model_name>/pretrained/` 바로 아래에 저장되고, 제안 모델 RSCL의 결과는 `rscl/pretrained/` 아래에 저장됩니다.
 
 학습 스크립트는 epoch checkpoint와 JSONL train log를 저장하지 않고, 같은 basename의 best checkpoint와 config JSON만 저장합니다. Benchmark launcher는 같은 basename의 console log를 각 모델의 `pretrained/` 폴더 바로 아래에 저장합니다. 예를 들어 CIFAR100 batch 1024는 각 모델 폴더에 다음 파일만 남깁니다.
@@ -253,14 +225,6 @@ SimSiam 학습:
 benchmark/simclr/pretrained/cifar100_batch_1024_best.pt
 benchmark/simclr/pretrained/cifar100_batch_1024_best.json
 benchmark/simclr/pretrained/cifar100_batch_1024_best.log
-
-benchmark/byol/pretrained/cifar100_batch_1024_best.pt
-benchmark/byol/pretrained/cifar100_batch_1024_best.json
-benchmark/byol/pretrained/cifar100_batch_1024_best.log
-
-benchmark/simsiam/pretrained/cifar100_batch_1024_best.pt
-benchmark/simsiam/pretrained/cifar100_batch_1024_best.json
-benchmark/simsiam/pretrained/cifar100_batch_1024_best.log
 
 rscl/pretrained/cifar100_batch_1024_best.pt
 rscl/pretrained/cifar100_batch_1024_best.json
@@ -300,7 +264,7 @@ linear_eval.py
 false_negative_exposure.py
 ```
 
-`common/model_loader.py`는 `simclr`, `rscl`, `byol`, `simsiam` checkpoint를 같은 방식으로 로드하고 encoder feature extractor를 만들어줍니다. 따라서 평가 코드는 모델별 내부 구조를 직접 알 필요가 없습니다.
+`common/model_loader.py`는 `simclr`, `rscl` checkpoint를 같은 방식으로 로드하고 encoder feature extractor를 만들어줍니다. 따라서 평가 코드는 모델별 내부 구조를 직접 알 필요가 없습니다.
 
 Linear evaluation 실행 예시는 다음과 같습니다.
 
