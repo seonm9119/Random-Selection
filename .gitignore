@@ -9,10 +9,6 @@ dataset/*
 runs/
 logs/
 output/
-scripts/*.out
-scripts/*.status
-scripts/pids/
-results/linear_eval_hparam/
-results/**/*.status
-results/**/*.pt
+scripts/
+results/
 **/pretrained/*
