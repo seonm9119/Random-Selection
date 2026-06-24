@@ -143,18 +143,65 @@ rscl/
 RSCL의 주요 설정은 `rscl/config.py`에 있습니다.
 
 ```text
-RANDOM_NEGATIVE_COUNT = 128
+RANDOM_NEGATIVE_COUNT = batch_size // 4
+RANDOM_NEGATIVE_COUNT_BATCH_SIZE_DIVISOR = 4
 NEGATIVE_MASS_SCALE = 1.0
-TEMPERATURE = 0.5
-LEARNING_RATE = 0.3
+TEMPERATURE = SimCLR 동일 dataset/batch 설정 사용
+LEARNING_RATE = SimCLR 동일 dataset/batch 설정 사용
 WARMUP_EPOCHS = 10
-BATCH_SIZE = 1024
-BACKBONE_NAME = "resnet18"
+EPOCHS = 500
+BACKBONE_NAME = "resnet50"
 ```
 
-`RANDOM_NEGATIVE_COUNT`는 anchor별로 선택할 negative 수입니다. `None`으로 바꾸면 가능한 모든 candidate negative를 사용합니다. 이 경우 RSCL loss는 SimCLR의 full negative setting에 가까워집니다.
+`RANDOM_NEGATIVE_COUNT`는 anchor별로 선택할 negative 수이며, 현재 코드는 항상 `batch_size // 4`로 고정합니다. 따라서 batch 256/512/1024에서는 각각 k=64/128/256을 사용합니다.
 
 `NEGATIVE_MASS_SCALE`은 selected negative mass에 곱하는 계수입니다. 기본값은 `1.0`이며, random selection을 통한 negative pressure 감소 효과를 그대로 둡니다.
+
+RSCL pretrain의 `learning_rate`와 `temperature`는 같은 dataset/batch의 SimCLR pretrain 설정을 그대로 사용합니다. RSCL에서 다르게 두는 값은 `k = batch_size // 4`입니다.
+
+```text
+CIFAR10
+batch256  -> lr=0.5, temp=1.0, k=64
+batch512  -> lr=1.5, temp=1.0, k=128
+batch1024 -> lr=1.5, temp=0.5, k=256
+
+CIFAR100
+batch256  -> lr=0.5, temp=1.0, k=64
+batch512  -> lr=0.5, temp=1.0, k=128
+batch1024 -> lr=1.5, temp=0.5, k=256
+```
+
+RTX 3060 서버에서는 batch256부터 학습을 진행합니다. batch256은 메모리 사용량 기준으로 12GB GPU에서 실행 가능한 설정입니다.
+
+```bash
+./.venv/bin/python -B rscl/train.py \
+  --dataset cifar10 \
+  --epochs 500 \
+  --batch-size 256 \
+  --output-dir rscl/pretrained \
+  --learning-rate 0.5 \
+  --temperature 1.0 \
+  --weight-decay 1e-6 \
+  --warmup-epochs 10 \
+  --num-workers 4 \
+  --device cuda \
+  --amp \
+  --suppress-external-progress
+
+./.venv/bin/python -B rscl/train.py \
+  --dataset cifar100 \
+  --epochs 500 \
+  --batch-size 256 \
+  --output-dir rscl/pretrained \
+  --learning-rate 0.5 \
+  --temperature 1.0 \
+  --weight-decay 1e-6 \
+  --warmup-epochs 10 \
+  --num-workers 4 \
+  --device cuda \
+  --amp \
+  --suppress-external-progress
+```
 
 ## 환경 설정
 
