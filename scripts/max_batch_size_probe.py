@@ -11,7 +11,7 @@ import torch
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 DEFAULT_BATCH_SIZES = (32, 64, 128, 256, 512, 1024, 2048, 4096)
 MODEL_DIRS = {
-    "simclr": PROJECT_DIR / "benchmark" / "simclr",
+    "simclr": PROJECT_DIR / "simclr",
     "rscl": PROJECT_DIR / "rscl",
 }
 
@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument("--amp", action="store_true", default=True)
     parser.add_argument("--no-amp", action="store_false", dest="amp")
     parser.add_argument("--stop-on-failure", action="store_true", default=True)
-    parser.add_argument("--output-path", default="results/smoke/max_batch_size.json")
+    parser.add_argument("--output-path", default="scripts/results/smoke/max_batch_size.json")
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--worker-model", choices=MODEL_DIRS.keys())
     parser.add_argument("--worker-batch-size", type=int)

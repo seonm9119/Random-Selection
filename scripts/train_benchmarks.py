@@ -22,21 +22,21 @@ DATASETS = ("cifar10",)
 BASE_EXPERIMENTS = (
     {
         "model": "simclr",
-        "script": "benchmark/simclr/train.py",
+        "script": "simclr/train.py",
         "batch_size": 1024,
-        "output_dir": "benchmark/simclr/pretrained",
+        "output_dir": "simclr/pretrained",
     },
     {
         "model": "simclr",
-        "script": "benchmark/simclr/train.py",
+        "script": "simclr/train.py",
         "batch_size": 512,
-        "output_dir": "benchmark/simclr/pretrained",
+        "output_dir": "simclr/pretrained",
     },
     {
         "model": "simclr",
-        "script": "benchmark/simclr/train.py",
+        "script": "simclr/train.py",
         "batch_size": 256,
-        "output_dir": "benchmark/simclr/pretrained",
+        "output_dir": "simclr/pretrained",
     },
 )
 

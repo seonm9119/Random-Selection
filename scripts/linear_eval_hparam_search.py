@@ -55,7 +55,7 @@ def create_output_path(args):
         return Path(args.output_path)
 
     checkpoint_name = Path(args.checkpoint).stem
-    return PROJECT_DIR / "results" / "linear_eval_hparam" / f"{args.model}_{checkpoint_name}.json"
+    return PROJECT_DIR / "scripts" / "results" / "linear_eval_hparam" / f"{args.model}_{checkpoint_name}.json"
 
 
 def combo_key(combo):

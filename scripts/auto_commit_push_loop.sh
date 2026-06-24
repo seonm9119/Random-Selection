@@ -39,8 +39,9 @@ stage_allowed_changes() {
   git add -A -- . \
     ':!token.txt' \
     ':!code_style.txt' \
-    ':!results/**/*.pt' \
+    ':!scripts/results/**/*.pt' \
     ':!benchmark/*/pretrained/*' \
+    ':!simclr/pretrained/*' \
     ':!rscl/pretrained/*'
 }
 
@@ -48,9 +49,9 @@ make_commit_message() {
   local staged_paths
   staged_paths="$(git diff --cached --name-only)"
 
-  if grep -q '^results/smoke/rscl_.*batch512' <<< "$staged_paths"; then
+  if grep -q '^scripts/results/smoke/rscl_.*batch512' <<< "$staged_paths"; then
     printf 'chore: sync rscl batch512 smoke results'
-  elif grep -q '^results/' <<< "$staged_paths"; then
+  elif grep -q '^scripts/results/' <<< "$staged_paths"; then
     printf 'chore: sync experiment results'
   elif grep -q '^scripts/' <<< "$staged_paths"; then
     printf 'chore: sync experiment scripts'

@@ -36,7 +36,7 @@ def create_output_path(args):
 
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     file_name = f"{args.dataset}_false_negative_exposure_{timestamp}.json"
-    return PROJECT_DIR / "results" / "analysis" / file_name
+    return PROJECT_DIR / "output" / "analysis" / file_name
 
 
 def average_batch_stats(batch_stats):

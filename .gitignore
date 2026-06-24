@@ -6,9 +6,6 @@ token.txt
 
 dataset/*
 
-runs/
-logs/
 output/
 scripts/
-results/
 **/pretrained/*

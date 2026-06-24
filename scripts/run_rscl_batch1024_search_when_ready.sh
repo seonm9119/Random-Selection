@@ -4,9 +4,9 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON_BIN="$PROJECT_DIR/.venv/bin/python"
 STATUS_FILE="$PROJECT_DIR/scripts/run_rscl_batch1024_search_when_ready.status"
-LOG_FILE="$PROJECT_DIR/logs/run_rscl_batch1024_search_when_ready.log"
+LOG_FILE="$PROJECT_DIR/scripts/run_rscl_batch1024_search_when_ready.out"
 
-mkdir -p "$PROJECT_DIR/logs" "$PROJECT_DIR/results/smoke"
+mkdir -p "$PROJECT_DIR/scripts/results/smoke"
 cd "$PROJECT_DIR"
 export PYTHONUNBUFFERED=1
 
@@ -36,7 +36,7 @@ run_search() {
   echo "completed=${dataset}_batch1024_search finished_at=$(date -Is)" >>"$STATUS_FILE"
 }
 
-run_search cifar10 results/smoke/rscl_cifar10_batch1024_hparam_search_warmup10_observe50_val5.json
-run_search cifar100 results/smoke/rscl_cifar100_batch1024_hparam_search_warmup10_observe50_val5.json
+run_search cifar10 scripts/results/smoke/rscl_cifar10_batch1024_hparam_search_warmup10_observe50_val5.json
+run_search cifar100 scripts/results/smoke/rscl_cifar100_batch1024_hparam_search_warmup10_observe50_val5.json
 
 echo "runner_finished_at=$(date -Is)" >>"$STATUS_FILE"

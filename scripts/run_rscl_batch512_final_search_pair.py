@@ -48,8 +48,8 @@ def run_search(dataset, output_path):
 
 def main():
     ensure_cifar_datasets()
-    run_search("cifar10", "results/smoke/rscl_cifar10_batch512_hparam_search_final_parallel.json")
-    run_search("cifar100", "results/smoke/rscl_cifar100_batch512_hparam_search_final_parallel.json")
+    run_search("cifar10", "scripts/results/smoke/rscl_cifar10_batch512_hparam_search_final_parallel.json")
+    run_search("cifar100", "scripts/results/smoke/rscl_cifar100_batch512_hparam_search_final_parallel.json")
 
 
 if __name__ == "__main__":

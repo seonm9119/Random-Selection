@@ -58,7 +58,7 @@ batch=512 lr=1.5 temp=1.0 neg=64 score=0.0444 drop=0.0948 bumps=2 val=4.1316->3.
 batch=512 lr=1.5 temp=1.0 neg=128 score=0.0474 drop=0.0901 bumps=2 val=4.8465->4.4097 epochs=10->60 train=4.8311->4.3603 peak=12911.5MB
 batch=512 lr=1.5 temp=1.0 neg=256 score=0.0354 drop=0.0803 bumps=2 val=5.5219->5.0787 epochs=10->60 train=5.5196->5.0362 peak=12911.5MB
 batch=512 lr=1.5 temp=1.0 neg=512 score=0.0171 drop=0.0623 bumps=2 val=6.2290->5.8409 epochs=10->60 train=6.2108->5.7278 peak=12911.5MB
-result_path=/home/ubuntu/Random-Selection/results/smoke/rscl_cifar10_batch512_hparam_search_warmup10_observe50_val5.json
+result_path=/home/ubuntu/Random-Selection/scripts/results/smoke/rscl_cifar10_batch512_hparam_search_warmup10_observe50_val5.json
 batch=512 lr=0.5 temp=0.1 neg=64 score=0.1028 drop=0.1720 bumps=3 val=4.1290->3.4189 epochs=10->60 train=5.0271->3.2602 peak=14335.1MB
 batch=512 lr=0.5 temp=0.1 neg=128 score=0.1103 drop=0.1516 bumps=2 val=4.8440->4.1096 epochs=10->60 train=5.7181->3.9581 peak=12910.5MB
 batch=512 lr=0.5 temp=0.1 neg=256 score=-0.0141 drop=0.0687 bumps=4 val=5.5094->5.1309 epochs=10->60 train=6.4069->4.8236 peak=12910.5MB

@@ -3,8 +3,8 @@ set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON_BIN="$PROJECT_DIR/.venv/bin/python"
-TRAIN_SCRIPT="$PROJECT_DIR/benchmark/simclr/train.py"
-OUTPUT_DIR="$PROJECT_DIR/benchmark/simclr/pretrained"
+TRAIN_SCRIPT="$PROJECT_DIR/simclr/train.py"
+OUTPUT_DIR="$PROJECT_DIR/simclr/pretrained"
 STATUS_FILE="$PROJECT_DIR/scripts/run_simclr_recommended_trainings.status"
 
 mkdir -p "$OUTPUT_DIR"

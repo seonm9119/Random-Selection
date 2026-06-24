@@ -13,7 +13,7 @@ from torch.utils.data import Subset
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
-SIMCLR_DIR = PROJECT_DIR / "benchmark" / "simclr"
+SIMCLR_DIR = PROJECT_DIR / "simclr"
 sys.path.insert(0, str(SIMCLR_DIR))
 sys.path.insert(0, str(PROJECT_DIR))
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument("--device", default=default_config["device"])
     parser.add_argument("--amp", dest="amp", action="store_true", default=default_config["amp"])
     parser.add_argument("--no-amp", dest="amp", action="store_false")
-    parser.add_argument("--output-path", default="results/smoke/simclr_hparam_search.json")
+    parser.add_argument("--output-path", default="scripts/results/smoke/simclr_hparam_search.json")
     args = parser.parse_args()
 
     if args.warmup_epochs < 1:

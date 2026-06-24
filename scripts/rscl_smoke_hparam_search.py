@@ -51,7 +51,7 @@ def parse_args():
     parser.add_argument("--no-amp", dest="amp", action="store_false")
     parser.add_argument("--wait-for-gpu-memory", action="store_true")
     parser.add_argument("--gpu-memory-poll-seconds", type=int, default=60)
-    parser.add_argument("--output-path", default="results/smoke/rscl_hparam_search.json")
+    parser.add_argument("--output-path", default="scripts/results/smoke/rscl_hparam_search.json")
     args = parser.parse_args()
 
     if args.warmup_epochs < 1:

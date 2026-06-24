@@ -8,7 +8,7 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 PYTHON_BIN = PROJECT_DIR / ".venv" / "bin" / "python"
-SEARCH_DIR = PROJECT_DIR / "results" / "lr_search" / "simclr"
+SEARCH_DIR = PROJECT_DIR / "scripts" / "results" / "lr_search" / "simclr"
 
 DEFAULT_LEARNING_RATES = (0.03, 0.075, 0.15, 0.3, 1.0)
 DEFAULT_DATASET = "cifar100"
@@ -85,7 +85,7 @@ def run_learning_rate_candidate(learning_rate):
     run_dir.mkdir(parents=True, exist_ok=True)
     log_path = run_dir / "console.log"
     environment = create_environment(learning_rate, run_name)
-    command = [get_python_bin(), "benchmark/simclr/train.py"]
+    command = [get_python_bin(), "simclr/train.py"]
 
     with log_path.open("w", encoding="utf-8") as log_file:
         completed_process = subprocess.run(
