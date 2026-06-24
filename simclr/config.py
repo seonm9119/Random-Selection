@@ -18,7 +18,7 @@ SUPPORTED_BACKBONES = (RESNET50_BACKBONE_NAME,)
 SUPPORTED_PROJ_HEAD_MODES = (PROJ_HEAD_MODE_NONE, PROJ_HEAD_MODE_LINEAR, PROJ_HEAD_MODE_NONLINEAR)
 SUPPORTED_OPTIMIZERS = (OPTIMIZER_NAME_MOMENTUM, OPTIMIZER_NAME_ADAM, OPTIMIZER_NAME_LARS)
 
-PROJECT_DIR_PARENT_DEPTH = 2
+PROJECT_DIR_PARENT_DEPTH = 1
 
 REFERENCE_CONFIG = {
     "paper_reference": "A Simple Framework for Contrastive Learning of Visual Representations",
@@ -36,7 +36,7 @@ REFERENCE_CONFIG = {
 RUN_CONFIG = {
     "dataset": CIFAR10_DATASET_NAME,
     "dataset_dir": "dataset",
-    "output_dir": "benchmark/simclr/pretrained",
+    "output_dir": "simclr/pretrained",
     "epochs": 500,
     "batch_size": 1024,
     "planned_batch_sizes": (1024, 512, 256),

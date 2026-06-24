@@ -10,8 +10,8 @@ from common.checkpoints import get_checkpoint_training_config, load_checkpoint, 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
 MODEL_SPECS = {
     "simclr": {
-        "config_path": PROJECT_DIR / "benchmark" / "simclr" / "config.py",
-        "model_path": PROJECT_DIR / "benchmark" / "simclr" / "model.py",
+        "config_path": PROJECT_DIR / "simclr" / "config.py",
+        "model_path": PROJECT_DIR / "simclr" / "model.py",
         "model_class_name": "SimclrModel",
         "encoder_path": "encoder",
     },
