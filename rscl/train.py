@@ -41,7 +41,11 @@ def create_argument_parser():
     argument_parser.add_argument("--learning-rate", type=float)
     argument_parser.add_argument("--learning-rate-scaling", choices=learning_rate_scaling_choices)
     argument_parser.add_argument("--temperature", type=float)
-    argument_parser.add_argument("--random-negative-count", type=int)
+    argument_parser.add_argument(
+        "--random-negative-count",
+        type=int,
+        help="Deprecated: RSCL now fixes this to batch_size // 4.",
+    )
     argument_parser.add_argument("--negative-mass-scale", type=float)
     argument_parser.add_argument("--weight-decay", type=float)
     argument_parser.add_argument("--warmup-epochs", type=int)
@@ -106,6 +110,17 @@ def apply_argument_overrides(training_config, command_arguments):
             training_config[config_name] = override_value
 
     return training_config
+
+
+def resolve_fixed_random_negative_count(training_config):
+    divisor = training_config["random_negative_count_batch_size_divisor"]
+    fixed_count = training_config["batch_size"] // divisor
+
+    if fixed_count < 1:
+        raise ValueError("Fixed RSCL random negative count must be at least 1.")
+
+    training_config["random_negative_count"] = fixed_count
+    return fixed_count
 
 
 def get_crop_interpolation(training_config):
@@ -322,6 +337,7 @@ def resolve_training_config(command_arguments=None):
     if training_config["negative_mass_scale"] <= 0:
         raise ValueError("NEGATIVE_MASS_SCALE must be positive.")
 
+    resolve_fixed_random_negative_count(training_config)
     validate_training_control_config(training_config)
     use_best_artifact_file_names(training_config)
     training_config["encoder_feature_dim"] = training_config["backbone_feature_dims"][training_config["backbone_name"]]

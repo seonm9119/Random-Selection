@@ -113,7 +113,8 @@ VIEW_COUNT = 2
 BATCH_CONCAT_DIM = 0
 FEATURE_NORMALIZE_DIM = 1
 HIDDEN_NORM = True
-RANDOM_NEGATIVE_COUNT = 128
+RANDOM_NEGATIVE_COUNT = None
+RANDOM_NEGATIVE_COUNT_BATCH_SIZE_DIVISOR = 4
 RANDOM_NEGATIVE_COUNT_OPTIONS = (64, 128, 256, 512)
 NEGATIVE_MASS_SCALE = 1.0
 TENSOR_SAMPLE_DIM = 0
@@ -264,6 +265,7 @@ def get_training_config():
         "feature_normalize_dim": FEATURE_NORMALIZE_DIM,
         "hidden_norm": HIDDEN_NORM,
         "random_negative_count": RANDOM_NEGATIVE_COUNT,
+        "random_negative_count_batch_size_divisor": RANDOM_NEGATIVE_COUNT_BATCH_SIZE_DIVISOR,
         "random_negative_count_options": RANDOM_NEGATIVE_COUNT_OPTIONS,
         "negative_mass_scale": NEGATIVE_MASS_SCALE,
         "tensor_sample_dim": TENSOR_SAMPLE_DIM,

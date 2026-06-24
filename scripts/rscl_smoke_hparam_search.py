@@ -28,7 +28,7 @@ from optimizer import create_learning_rate_schedule, create_optimizer, set_optim
 DEFAULT_BATCH_SIZES = (1024, 512, 256)
 DEFAULT_LEARNING_RATES = (0.5, 1.0, 1.5)
 DEFAULT_TEMPERATURES = (0.1, 0.5, 1.0)
-DEFAULT_NEGATIVE_COUNTS = (64, 128, 256, 512)
+DEFAULT_NEGATIVE_COUNTS = ()
 
 
 def parse_args():
@@ -105,14 +105,13 @@ def resolve_project_path(path_text):
     return str(PROJECT_DIR / configured_path)
 
 
-def create_search_training_config(args, batch_size, learning_rate, temperature, negative_count):
+def create_search_training_config(args, batch_size, learning_rate, temperature, negative_count=None):
     training_config = config.get_training_config()
     training_config["dataset"] = args.dataset
     training_config["epochs"] = args.warmup_epochs + args.observe_epochs
     training_config["batch_size"] = batch_size
     training_config["learning_rate"] = learning_rate
     training_config["temperature"] = temperature
-    training_config["random_negative_count"] = negative_count
     training_config["warmup_epochs"] = args.warmup_epochs
     training_config["num_workers"] = args.num_workers
     training_config["seed"] = args.seed
@@ -134,6 +133,7 @@ def create_search_training_config(args, batch_size, learning_rate, temperature, 
     training_config["encoder_feature_dim"] = training_config["backbone_feature_dims"][training_config["backbone_name"]]
     training_config["projection_hidden_dim"] = training_config["projection_hidden_dims"][training_config["backbone_name"]]
     training_config["amp"] = training_config["amp"] and training_config["device"] == training_config["cuda_device"]
+    train.resolve_fixed_random_negative_count(training_config)
     return training_config
 
 
@@ -481,11 +481,9 @@ def run_search(args):
     best_by_batch = build_best_by_batch(results)
 
     for batch_size in args.batch_sizes:
-        for learning_rate, temperature, negative_count in product(
-            args.learning_rates,
-            args.temperatures,
-            args.negative_counts,
-        ):
+        fixed_negative_count = batch_size // config.RANDOM_NEGATIVE_COUNT_BATCH_SIZE_DIVISOR
+        for learning_rate, temperature in product(args.learning_rates, args.temperatures):
+            negative_count = fixed_negative_count
             result_key = (batch_size, learning_rate, temperature, negative_count)
             if result_key in result_keys:
                 print(
